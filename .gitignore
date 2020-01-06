@@ -1,0 +1,6 @@
+ncc
+tmp
+*.s
+*.o
+*~
+.vscode
