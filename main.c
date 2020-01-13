@@ -11,45 +11,17 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    bool tokenizeResult = tokenizer(argv[1]);
-    if (!tokenizeResult) {
-        return 1;
-    }
+    tokenizer(argv[1]);
+    position = 0;
+    Node *node = expr();
 
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
     printf("main:\n");
 
-    if (tokenList[0].type != NUMBER) {
-        fprintf(stderr, "数式の最初は数値でなければなりません。\n");
-        return 1;
-    }
-    printf("  mov rax, %d\n", tokenList[0].value);
+    codeGenerate(node);
 
-    int index = 1;
-    while (tokenList[index].type != END_OF_FILE) {
-        if (tokenList[index].type != NUMBER) {
-            int type = tokenList[index].type;
-            index++;
-            if (tokenList[index].type != NUMBER) {
-                fprintf(stderr, "演算子の次は数値でなければなりません。\n");
-                return 1;
-            }
-
-            if (type == '+') {
-                printf("  add rax, %d\n", tokenList[index].value);
-            } else if (type == '-') {
-                printf("  sub rax, %d\n", tokenList[index].value);
-            } else {
-                outputError(index);
-            }
-            index++;
-        } else {
-            fprintf(stderr, "予期せぬトークンが見つかりました。\n");
-            return 1;
-        }
-    }
-
-    printf("  ret\n");
+    printf("    pop rax\n");
+    printf("    ret\n");
     return 0;
 }

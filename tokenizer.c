@@ -1,11 +1,19 @@
 #include "ncc.h"
 
-bool tokenizer(char *input) {
+/**
+ * 与えられた式をトークンに分解する
+ */
+void tokenizer(char *input) {
     int index = 0;
     while (*input) {
         if (isspace(*input)) {
             input++;
-        } else if (*input == '+' || *input == '-') {
+        } else if (*input == '+'
+                || *input == '-'
+                || *input == '*'
+                || *input == '/'
+                || *input == '('
+                || *input == ')') {
             tokenList[index].type = *input;
             tokenList[index].error = input;
             input++;
@@ -17,11 +25,11 @@ bool tokenizer(char *input) {
             index++;
         } else {
             fprintf(stderr, "%sはトークナイズできません。", input);
-            return false;
+            exit(1);
         }
     }
 
     tokenList[index].type = END_OF_FILE;
     tokenList[index].error = input;
-    return true;
+    return;
 }

@@ -3,4 +3,5 @@ tmp
 *.s
 *.o
 *~
+*.pdb
 .vscode
