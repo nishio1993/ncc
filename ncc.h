@@ -6,12 +6,13 @@
 
 typedef enum TokenType {
     RESERVED,   //予約語
+    VARIABLE,   //変数
     NUMBER,     //整数
     END_OF_FILE //終端
 } TokenType;
 
 typedef struct Token {
-    int type;  //TokenType
+    int type;       //TokenType
     int value;      //TokenType=NUMBERの時の値
     char *error;    //エラー文表示用
 } Token;
@@ -41,6 +42,7 @@ Node *newNumberNode(int value);
 
 Node *expr();
 Node *mul();
+Node *unary();
 Node *primary();
 
 void codeGenerate(Node *node);

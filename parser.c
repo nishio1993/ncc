@@ -40,19 +40,34 @@ Node *expr() {
 }
 
 /**
- * mul = primary ("*" primary | "/" primary)*
+ * mul = unary ("*" unary | "/" unary)*
  */
 Node *mul() {
-    Node *node = primary();
+    Node *node = unary();
 
     if (tokenList[position].type == '*') {
         position++;
-        return newSymbolNode(MUL, node, primary());
+        return newSymbolNode(MUL, node, unary());
     } else if (tokenList[position].type == '/') {
         position++;
-        return newSymbolNode(DIV, node, primary());
+        return newSymbolNode(DIV, node, unary());
     } else {
         return node;
+    }
+}
+
+/**
+ * unary = ("+" | "-")? primary
+ */
+Node *unary() {
+    if (tokenList[position].type == '-') {
+        Node *node = newNumberNode(0);
+        return newSymbolNode(SUB, node, primary());
+    } else if (tokenList[position].type == '+') {
+        position++;
+        return primary();
+    } else {
+        return primary();
     }
 }
 
