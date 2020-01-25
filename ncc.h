@@ -5,14 +5,14 @@
 #include <stdbool.h>
 
 typedef enum TokenType {
-    RESERVED,   //予約語
-    VARIABLE,   //変数
+    OPERATOR,   //演算子
     NUMBER,     //整数
     END_OF_FILE //終端
 } TokenType;
 
 typedef struct Token {
     int type;       //TokenType
+    char* operator; //TokenType=NUMBER以外の時の値
     int value;      //TokenType=NUMBERの時の値
     char *error;    //エラー文表示用
 } Token;
@@ -27,6 +27,10 @@ typedef enum NodeType{
     SUB,    //-
     MUL,    //*
     DIV,    //÷
+    EQ,     //==
+    NEQ,    //!=
+    LT,     //<
+    LTE,     //<=
     NUM     //整数
 } NodeType;
 
@@ -41,10 +45,13 @@ Node *newSymbolNode(int type, Node *left, Node *right);
 Node *newNumberNode(int value);
 
 Node *expr();
+Node *equality();
+Node *relational();
+Node *add();
 Node *mul();
 Node *unary();
 Node *primary();
 
-void codeGenerate(Node *node);
+void generate(Node *node);
 
 void outputError(int position);

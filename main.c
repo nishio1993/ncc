@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
     printf(".global main\n");
     printf("main:\n");
 
-    codeGenerate(node);
+    generate(node);
 
     printf("    pop rax\n");
     printf("    ret\n");

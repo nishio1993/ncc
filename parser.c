@@ -26,46 +26,93 @@ Node *newNumberNode(int value) {
  * expr = mul ("+" mul | "-" mul)*
  */
 Node *expr() {
-    Node *node = mul();
+    Node *node = equality();
+}
 
-    if (tokenList[position].type == '+' ) {
+/**
+ * equality = relational ("==" relational | "!=" relational)*
+ */
+Node *equality() {
+    Node *node = relational();
+
+    if (!strcmp(tokenList[position].operator, "==")) {
         position++;
-        return newSymbolNode(ADD, node, expr());
-    } else if (tokenList[position].type == '-') {
+        return newSymbolNode(EQ, node, relational());
+    } else if (!strcmp(tokenList[position].operator, "!=")) {
         position++;
-        return newSymbolNode(SUB, node, expr());
+        return newSymbolNode(NEQ, node, relational());
     } else {
         return node;
     }
 }
 
 /**
- * mul = unary ("*" unary | "/" unary)*
+ * relational = add ("<" add | "<=" add)*
+ */
+Node *relational() {
+    Node *node = add();
+
+    if (!strcmp(tokenList[position].operator, "<")) {
+        position++;
+        return newSymbolNode(LT, node, add());
+    } else if (!strcmp(tokenList[position].operator, ">")) {
+        position++;
+        return newSymbolNode(LT, add(), node);
+    } else if (!strcmp(tokenList[position].operator, "<=")) {
+        position++;
+        return newSymbolNode(LTE, node, add());
+    } else if (!strcmp(tokenList[position].operator, ">=")) {
+        position++;
+        return newSymbolNode(LTE, add(), node);
+    } else {
+        return node;
+    }
+}
+
+/**
+ * add = mul ("+" add | "-" add)*
+ */
+Node *add() {
+    Node *node = mul();
+
+    if (!strcmp(tokenList[position].operator, "+")) {
+        position++;
+        return newSymbolNode(ADD, node, add());
+    } else if (!strcmp(tokenList[position].operator, "-")) {
+        position++;
+        return newSymbolNode(SUB, node, add());
+    } else {
+        return node;
+    }
+}
+
+/**
+ * mul = unary ("*" mul | "/" mul)*
  */
 Node *mul() {
     Node *node = unary();
 
-    if (tokenList[position].type == '*') {
+    if (!strcmp(tokenList[position].operator, "*")) {
         position++;
-        return newSymbolNode(MUL, node, unary());
-    } else if (tokenList[position].type == '/') {
+        return newSymbolNode(MUL, node, mul());
+    } else if (!strcmp(tokenList[position].operator, "/")) {
         position++;
-        return newSymbolNode(DIV, node, unary());
+        return newSymbolNode(DIV, node, mul());
     } else {
         return node;
     }
 }
 
 /**
- * unary = ("+" | "-")? primary
+ * unary = ("+" unary | "-" unary)? primary
  */
 Node *unary() {
-    if (tokenList[position].type == '-') {
+    if (!strcmp(tokenList[position].operator, "-")) {
         Node *node = newNumberNode(0);
-        return newSymbolNode(SUB, node, primary());
-    } else if (tokenList[position].type == '+') {
+        return newSymbolNode(SUB, node, unary());
+    } else if (!strcmp(tokenList[position].operator, "+")) {
         position++;
-        return primary();
+        return unary();
     } else {
         return primary();
     }
@@ -75,15 +122,15 @@ Node *unary() {
  * primary = num | "(" expr ")"
  */
 Node *primary() {
-    if (tokenList[position].type == '(') {
+    if (tokenList[position].type == NUMBER) {
+        return newNumberNode(tokenList[position].value);
+    } else if (!strcmp(tokenList[position].operator, "(")) {
         position++;
         Node *node = expr();
-        if (tokenList[position].type != ')') {
+        if (strcmp(tokenList[position].operator, ")")) {
             outputError(position);
         }
         position++;
         return node;
-    } else {
-        return newNumberNode(tokenList[position].value);
     }
 }
