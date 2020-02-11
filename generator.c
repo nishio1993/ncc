@@ -7,6 +7,20 @@ void generate(Node *node) {
     if (node->type == NUM) {
         printf("    push    %d\n", node->value);
         return;
+    } else if (node->type == VAR) {
+        generateForVariable(node);
+        printf("    pop     rax\n");
+        printf("    mov     rax, [rax]\n");
+        printf("    push    rax\n");
+        return;
+    } else if (node->type == ASSIGN) {
+        generateForVariable(node->left);
+        generate(node->right);
+        printf("    pop     rdi\n");
+        printf("    pop     rax\n");
+        printf("    mov     [rax], rdi\n");
+        printf("    push    rdi\n");
+        return;
     }
 
     generate(node->left);
@@ -52,4 +66,16 @@ void generate(Node *node) {
     }
 
     printf("    push    rax\n");
+}
+
+void generateForVariable(Node *node) {
+    if (node->type == VAR) {
+        printf("    mov     rax, rbp\n");
+        printf("    sub     rax, %d\n", ('z' - node->name + 1) * 8);
+        printf("    push    rax\n");
+        return;
+    } else {
+        fprintf(stdout, "=の左に来るノードではありません。\n");
+        exit(1);
+    }
 }

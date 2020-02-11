@@ -8,10 +8,10 @@ void tokenizer(char *input) {
     while (*input) {
         if (isspace(*input)) {
             input++;
-        } else if ((*input == '=' && *(input + 1) == '=')
-                || (*input == '!' && *(input + 1) == '=')
-                || (*input == '<' && *(input + 1) == '=')
-                || (*input == '>' && *(input + 1) == '=')) {
+        } else if (strncmp("==", input, 2) == 0
+                || strncmp("!=", input, 2) == 0
+                || strncmp("<=", input, 2) == 0
+                || strncmp(">=", input, 2) == 0) {
             tokenList[index].type = OPERATOR;
             char *operator = (char*)malloc(sizeof(char) * 3);
             operator[0] = *input;
@@ -21,20 +21,19 @@ void tokenizer(char *input) {
             tokenList[index].error = operator;
             input += 2;
             index++;
-        } else if (*input == '+'
-                || *input == '-'
-                || *input == '*'
-                || *input == '/'
-                || *input == '('
-                || *input == ')'
-                || *input == '<'
-                || *input == '>') {
+        } else if (strchr("+-*/()<>;=", *input) != NULL) {
             tokenList[index].type = OPERATOR;
             char *operator = (char*)malloc(sizeof(char) * 2);
             operator[0] = *input;
             operator[1] = '\0';
             tokenList[index].operator = operator;
             tokenList[index].error = input;
+            input++;
+            index++;
+        } else if ('a' <= *input && *input <= 'z') {
+            tokenList[index].type = VARIABLE;
+            tokenList[index].name = *input;
+            tokenList[index].operator = "";
             input++;
             index++;
         } else if (isdigit(*input)) {
@@ -44,7 +43,7 @@ void tokenizer(char *input) {
             tokenList[index].error = input;
             index++;
         } else {
-            fprintf(stderr, "%sはトークナイズできません。", input);
+            fprintf(stderr, "%cはトークナイズできません。", *input);
             exit(1);
         }
     }

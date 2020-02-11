@@ -13,15 +13,23 @@ int main(int argc, char **argv) {
 
     tokenizer(argv[1]);
     position = 0;
-    Node *node = expr();
+    program();
 
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
     printf("main:\n");
+    printf("    push    rbp\n");
+    printf("    mov     rbp, rsp\n");
+    printf("    sub     rsp, 208\n");
 
-    generate(node);
+    int i;
+    for (i = 0; codeList[i]; i++) {
+        generate(codeList[i]);
+        printf("    pop     rax\n");
+    }
 
-    printf("    pop rax\n");
+    printf("    mov     rsp, rbp\n");
+    printf("    pop     rbp\n");
     printf("    ret\n");
     return 0;
 }
