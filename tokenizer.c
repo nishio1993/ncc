@@ -1,10 +1,17 @@
 #include "ncc.h"
 
+void addToken(int type, char *operator, int value, char *name, int length);
+void addVariable(char *name, int length, int byte, int offset);
+char *duplicateString(char *start, int length);
+
 /**
  * 与えられた式をトークンに分解する
  */
-void tokenizer(char *input) {
-    int index = 0;
+void tokenize(char *input) {
+    tokenVector = newVector();
+    variableVector = newVector();
+    int offset = 8;
+
     while (*input) {
         if (isspace(*input)) {
             input++;
@@ -12,44 +19,63 @@ void tokenizer(char *input) {
                 || strncmp("!=", input, 2) == 0
                 || strncmp("<=", input, 2) == 0
                 || strncmp(">=", input, 2) == 0) {
-            tokenList[index].type = OPERATOR;
-            char *operator = (char*)malloc(sizeof(char) * 3);
-            operator[0] = *input;
-            operator[1] = *(input + 1);
-            operator[2] = '\0';
-            tokenList[index].operator = operator;
-            tokenList[index].error = operator;
-            input += 2;
-            index++;
+            char *operator = duplicateString(input, 2);
+            addToken(OPERATOR, operator, 0, "", 0);
+            input +=2;
         } else if (strchr("+-*/()<>;=", *input) != NULL) {
-            tokenList[index].type = OPERATOR;
-            char *operator = (char*)malloc(sizeof(char) * 2);
-            operator[0] = *input;
-            operator[1] = '\0';
-            tokenList[index].operator = operator;
-            tokenList[index].error = input;
+            char *operator = duplicateString(input, 1);
+            addToken(OPERATOR, operator, 0, "", 0);
             input++;
-            index++;
-        } else if ('a' <= *input && *input <= 'z') {
-            tokenList[index].type = VARIABLE;
-            tokenList[index].name = *input;
-            tokenList[index].operator = "";
-            input++;
-            index++;
+        } else if (isalpha(*input) || *input == '_') {
+            int length = 0;
+            while(isalpha(input[length]) || isdigit(input[length]) || input[length] == '_') {
+                length++;
+            }
+            char *name = duplicateString(input, length);
+            addToken(VARIABLE, "", 0, name, length);
+            if (getVariable(name, length) == NULL) {
+                addVariable(name, length, 1, offset);
+                offset += 8;
+            }
+            input += length;
         } else if (isdigit(*input)) {
-            tokenList[index].type = NUMBER;
-            tokenList[index].value = strtol(input, &input, 10);
-            tokenList[index].operator = "";
-            tokenList[index].error = input;
-            index++;
+            int value = strtol(input, &input, 10);
+            addToken(NUMBER, "", value, "", 0);
         } else {
             fprintf(stderr, "%cはトークナイズできません。", *input);
             exit(1);
         }
     }
-
-    tokenList[index].type = END_OF_FILE;
-    tokenList[index].operator = "";
-    tokenList[index].error = input;
     return;
+}
+
+void addToken(int type, char *operator, int value, char *name, int length) {
+    Token *token = malloc(sizeof(Token));
+    token->type = type;
+    token->operator = operator;
+    token->value = value;
+    token->name = name;
+    token->length = length;
+    vectorPush(tokenVector, token);
+    return;
+}
+
+void addVariable(char *name, int length, int byte, int offset) {
+    Variable *variable = malloc(sizeof(Variable));
+    variable->name = name;
+    variable->length = length;
+    variable->byte = byte;
+    variable->offset = offset;
+    vectorPush(variableVector, variable);
+    return;
+}
+
+char *duplicateString(char *start, int length) {
+    char *string = malloc((sizeof(char) * length) + 1);
+    int i;
+    for (i = 0; i < length; i++) {
+        string[i] = start[i];
+    }
+    string[i] = '\0';
+    return string;
 }

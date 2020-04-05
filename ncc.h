@@ -12,19 +12,6 @@ typedef enum TokenType {
     END_OF_FILE //終端
 } TokenType;
 
-typedef struct Token {
-    int type;       //TokenType
-    char* operator; //TokenType=OPERATORの時の値
-    int value;      //TokenType=NUMBERの時の値
-    char name;      //TokenType=VARIABLEの時の名前
-    char *error;    //エラー文表示用
-} Token;
-
-Token tokenList[255];
-int position;
-
-void tokenizer(char *input);
-
 typedef enum NodeType{
     ADD,    //+
     SUB,    //-
@@ -35,36 +22,63 @@ typedef enum NodeType{
     LT,     //<
     LTE,    //<=
     VAR,    //変数
-    ASSIGN, //=
+    ASG,    //=
     NUM     //整数
 } NodeType;
+
+typedef struct Token {
+    int type;       //TokenType
+    char *operator; //TokenType=OPERATORの時の値
+    int value;      //TokenType=NUMBERの時の値
+    char *name;     //TokenType=VARIABLEの時の名前
+    int length;     //変数名の長さ
+} Token;
+
+typedef struct Variable {
+    char *name; //変数名
+    int length; //変数名の長さ
+    int byte;   //バイトサイズ
+    int offset; //RBPからのビット距離
+} Variable;
 
 typedef struct Node {
     int type;           //NodeType
     struct Node *left;  //左辺
     struct Node *right; //右辺
     int value;          //NodeType=NUMの時の値
-    char name;          //NodeType=ALLOC,STORE,LOADの時の値
+    char *name;         //NodeType=VARの時の値
+    int length;         //変数名の長さ
 } Node;
 
-Node *codeList[255];
+typedef struct Vector {
+    void **data;
+    int capacity;
+    int length;
+} Vector;
 
-Node *newSymbolNode(int type, Node *left, Node *right);
-Node *newNumberNode(int value);
-Node *newVariableNode(char name);
+typedef struct Map {
+    Vector *key;
+    Vector *value;
+} Map;
 
-void program();
-Node *statement();
-Node *expression();
-Node *assign();
-Node *equality();
-Node *relational();
-Node *add();
-Node *mul();
-Node *unary();
-Node *primary();
+Vector *tokenVector;
+Vector *variableVector;
+Vector *nodeVector;
+Vector *codeVector;
+int tokenIndex;
+
+void tokenize(char *input);
+
+void parse(void);
 
 void generate(Node *node);
-void generateForVariable(Node *node);
 
-void outputError(int position);
+void outputError(int tokenIndex);
+
+Vector *newVector(void);
+void vectorPush(Vector *vector, void *element);
+Map *newMap(void);
+void mapSet(Map *map, char *key, void *val);
+void *mapGet(Map *map, const char *key);
+bool mapExists(Map *map, char *key);
+Variable *getVariable(char *name, int length);

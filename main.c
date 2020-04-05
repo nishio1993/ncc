@@ -1,7 +1,8 @@
 #include "ncc.h"
 
 void outputError(int tokenIndex) {
-    fprintf(stderr, "予期せぬ「%s」トークンがありました。", tokenList[tokenIndex].error);
+    Token *token = (Token*)tokenVector->data[tokenIndex];
+    fprintf(stderr, "予期せぬ「%s」トークンがありました。\n", token->operator);
     exit(1);
 }
 
@@ -11,20 +12,20 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    tokenizer(argv[1]);
-    position = 0;
-    program();
+    tokenize(argv[1]);
+    parse();
 
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
     printf("main:\n");
     printf("    push    rbp\n");
     printf("    mov     rbp, rsp\n");
-    printf("    sub     rsp, 208\n");
+    printf("    sub     rsp, %d\n", variableVector->length * 8);
 
     int i;
-    for (i = 0; codeList[i]; i++) {
-        generate(codeList[i]);
+    for (i = 0; codeVector->length > i; i++) {
+        Node *node = (Node *)codeVector->data[i];
+        generate(node);
         printf("    pop     rax\n");
     }
 

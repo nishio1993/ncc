@@ -44,5 +44,6 @@ try 1 "2 >= 1;"
 try 3 "a = 3;a;"
 try 14 "a = 2; b = (3+4); a*b;"
 try 5 "a = 5;b = a;b;"
+try 24 "ab3 = 3 * 4; c6d = ab3 * 2; e_f = c6d;"
 
 echo OK

@@ -1,58 +1,45 @@
 #include "ncc.h"
 
-/**
- * 左辺にleft、右辺にrightを持つノードを返却する。
- */
-Node *newSymbolNode(int type, Node *left, Node *right) {
-    Node *node = calloc(1, sizeof(Node));
-    node->type = type;
-    node->left = left;
-    node->right = right;
-    return node;
-}
+void program(void);
+Node *statement(void);
+Node *expression(void);
+Node *assign(void);
+Node *equality(void);
+Node *relational(void);
+Node *add(void);
+Node *mul(void);
+Node *unary(void);
+Node *primary(void);
 
-/**
- * 数値を持つノードを返却する。
- */
-Node *newNumberNode(int value) {
-    position++;
-    Node *node = calloc(1, sizeof(Node));
-    node->type = NUM;
-    node->value = value;
-    return node;
-}
+Node *newSymbolNode(int type, Node *left, Node *right);
+Node *newNumberNode(int value);
+Node *newVariableNode(char *name, int length);
 
-/**
- * 変数を持つノードを返却する。
- */
-Node *newVariableNode(char name) {
-    position++;
-    Node *node = calloc(1, sizeof(Node));
-    node->type = VAR;
-    node->name = name;
-    return node;
+void parse() {
+    program();
 }
 
 /**
  * program = statement*
  */
 void program() {
-    int line;
-    for (line = 0; tokenList[position].type != END_OF_FILE; line++) {
-        codeList[line] = statement();
+    codeVector = newVector();
+    while(tokenIndex < tokenVector->length) {
+        vectorPush(codeVector, statement());
     }
 }
 
 /**
- * statement = expression ";"
+ * statement = expression ";" | "return" expression ";"
  */
 Node *statement() {
     Node *node = expression();
-    if (strcmp(tokenList[position].operator, ";") == 0) {
-        position++;
+    Token *token = (Token*)tokenVector->data[tokenIndex];
+    if (strcmp(token->operator, ";") == 0) {
+        tokenIndex++;
         return node;
     } else {
-        outputError(position);
+        outputError(tokenIndex);
     }
 }
 
@@ -69,9 +56,10 @@ Node *expression() {
  */
 Node *assign() {
     Node *node = equality();
-    if (strcmp(tokenList[position].operator, "=") == 0) {
-        position++;
-        return newSymbolNode(ASSIGN, node, assign());
+    Token *token = (Token*)tokenVector->data[tokenIndex];
+    if (strcmp(token->operator, "=") == 0) {
+        tokenIndex++;
+        return newSymbolNode(ASG, node, assign());
     } else {
         return node;
     }
@@ -82,12 +70,12 @@ Node *assign() {
  */
 Node *equality() {
     Node *node = relational();
-
-    if (strcmp(tokenList[position].operator, "==") == 0) {
-        position++;
+    Token *token = (Token*)tokenVector->data[tokenIndex];
+    if (strcmp(token->operator, "==") == 0) {
+        tokenIndex++;
         return newSymbolNode(EQ, node, relational());
-    } else if (strcmp(tokenList[position].operator, "!=") == 0) {
-        position++;
+    } else if (strcmp(token->operator, "!=") == 0) {
+        tokenIndex++;
         return newSymbolNode(NEQ, node, relational());
     } else {
         return node;
@@ -99,18 +87,18 @@ Node *equality() {
  */
 Node *relational() {
     Node *node = add();
-
-    if (strcmp(tokenList[position].operator, "<") == 0) {
-        position++;
+    Token *token = (Token*)tokenVector->data[tokenIndex];
+    if (strcmp(token->operator, "<") == 0) {
+        tokenIndex++;
         return newSymbolNode(LT, node, add());
-    } else if (strcmp(tokenList[position].operator, ">") == 0) {
-        position++;
+    } else if (strcmp(token->operator, ">") == 0) {
+        tokenIndex++;
         return newSymbolNode(LT, add(), node);
-    } else if (strcmp(tokenList[position].operator, "<=") == 0) {
-        position++;
+    } else if (strcmp(token->operator, "<=") == 0) {
+        tokenIndex++;
         return newSymbolNode(LTE, node, add());
-    } else if (strcmp(tokenList[position].operator, ">=") == 0) {
-        position++;
+    } else if (strcmp(token->operator, ">=") == 0) {
+        tokenIndex++;
         return newSymbolNode(LTE, add(), node);
     } else {
         return node;
@@ -122,12 +110,12 @@ Node *relational() {
  */
 Node *add() {
     Node *node = mul();
-
-    if (strcmp(tokenList[position].operator, "+") == 0) {
-        position++;
+    Token *token = (Token*)tokenVector->data[tokenIndex];
+    if (strcmp(token->operator, "+") == 0) {
+        tokenIndex++;
         return newSymbolNode(ADD, node, add());
-    } else if (strcmp(tokenList[position].operator, "-") == 0) {
-        position++;
+    } else if (strcmp(token->operator, "-") == 0) {
+        tokenIndex++;
         return newSymbolNode(SUB, node, add());
     } else {
         return node;
@@ -139,12 +127,12 @@ Node *add() {
  */
 Node *mul() {
     Node *node = unary();
-
-    if (strcmp(tokenList[position].operator, "*") == 0) {
-        position++;
+    Token *token = (Token*)tokenVector->data[tokenIndex];
+    if (strcmp(token->operator, "*") == 0) {
+        tokenIndex++;
         return newSymbolNode(MUL, node, mul());
-    } else if (strcmp(tokenList[position].operator, "/") == 0) {
-        position++;
+    } else if (strcmp(token->operator, "/") == 0) {
+        tokenIndex++;
         return newSymbolNode(DIV, node, mul());
     } else {
         return node;
@@ -155,11 +143,12 @@ Node *mul() {
  * unary = ("+" unary | "-" unary)? primary
  */
 Node *unary() {
-    if (strcmp(tokenList[position].operator, "-") == 0) {
+    Token *token = (Token*)tokenVector->data[tokenIndex];
+    if (strcmp(token->operator, "-") == 0) {
         Node *node = newNumberNode(0);
         return newSymbolNode(SUB, node, unary());
-    } else if (strcmp(tokenList[position].operator, "+") == 0) {
-        position++;
+    } else if (strcmp(token->operator, "+") == 0) {
+        tokenIndex++;
         return unary();
     } else {
         return primary();
@@ -170,17 +159,53 @@ Node *unary() {
  * primary = num | "(" expr ")"
  */
 Node *primary() {
-    if (tokenList[position].type == NUMBER) {
-        return newNumberNode(tokenList[position].value);
-    } else if (tokenList[position].type == VARIABLE) {
-        return newVariableNode(tokenList[position].name);
-    } else if (strcmp(tokenList[position].operator, "(") == 0) {
-        position++;
+    Token *token = (Token*)tokenVector->data[tokenIndex];
+    if (token->type == NUMBER) {
+        return newNumberNode(token->value);
+    } else if (token->type == VARIABLE) {
+        return newVariableNode(token->name, token->length);
+    } else if (strcmp(token->operator, "(") == 0) {
+        tokenIndex++;
         Node *node = expression();
-        if (strcmp(tokenList[position].operator, ")") != 0) {
-            outputError(position);
+        token = (Token*)tokenVector->data[tokenIndex];
+        if (strcmp(token->operator, ")") != 0) {
+            outputError(tokenIndex);
         }
-        position++;
+        tokenIndex++;
         return node;
     }
+}
+
+/**
+ * 左辺にleft、右辺にrightを持つノードを返却する。
+ */
+Node *newSymbolNode(int type, Node *left, Node *right) {
+    Node *node = calloc(1, sizeof(Node));
+    node->type = type;
+    node->left = left;
+    node->right = right;
+    return node;
+}
+
+/**
+ * 数値を持つノードを返却する。
+ */
+Node *newNumberNode(int value) {
+    tokenIndex++;
+    Node *node = calloc(1, sizeof(Node));
+    node->type = NUM;
+    node->value = value;
+    return node;
+}
+
+/**
+ * 変数を持つノードを返却する。
+ */
+Node *newVariableNode(char *name, int length) {
+    tokenIndex++;
+    Node *node = calloc(1, sizeof(Node));
+    node->type = VAR;
+    node->name = name;
+    node->length = length;
+    return node;
 }

@@ -1,5 +1,7 @@
 #include "ncc.h"
 
+void generateForVariable(Node *node);
+
 /**
  * アセンブリを標準出力する
  */
@@ -13,7 +15,7 @@ void generate(Node *node) {
         printf("    mov     rax, [rax]\n");
         printf("    push    rax\n");
         return;
-    } else if (node->type == ASSIGN) {
+    } else if (node->type == ASG) {
         generateForVariable(node->left);
         generate(node->right);
         printf("    pop     rdi\n");
@@ -70,8 +72,9 @@ void generate(Node *node) {
 
 void generateForVariable(Node *node) {
     if (node->type == VAR) {
+        Variable *variable = getVariable(node->name, node->length);
         printf("    mov     rax, rbp\n");
-        printf("    sub     rax, %d\n", ('z' - node->name + 1) * 8);
+        printf("    sub     rax, %d\n", variable->offset * variable->byte);
         printf("    push    rax\n");
         return;
     } else {
