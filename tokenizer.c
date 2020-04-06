@@ -1,8 +1,9 @@
 #include "ncc.h"
 
-void addToken(int type, char *operator, int value, char *name, int length);
+void addToken(int type, char *identifier, int length, int value);
 void addVariable(char *name, int length, int byte, int offset);
 char *duplicateString(char *start, int length);
+bool isIdentifier(char c);
 
 /**
  * 与えられた式をトークンに分解する
@@ -15,24 +16,28 @@ void tokenize(char *input) {
     while (*input) {
         if (isspace(*input)) {
             input++;
+        } else if (strncmp("return", input, 6) == 0
+                && isIdentifier(input[6]) == false) {
+            addToken(OPERATOR, "return", 6, 0);
+            input += 6;
         } else if (strncmp("==", input, 2) == 0
                 || strncmp("!=", input, 2) == 0
                 || strncmp("<=", input, 2) == 0
                 || strncmp(">=", input, 2) == 0) {
-            char *operator = duplicateString(input, 2);
-            addToken(OPERATOR, operator, 0, "", 0);
+            char *identifier = duplicateString(input, 2);
+            addToken(OPERATOR, identifier, 2, 0);
             input +=2;
         } else if (strchr("+-*/()<>;=", *input) != NULL) {
-            char *operator = duplicateString(input, 1);
-            addToken(OPERATOR, operator, 0, "", 0);
+            char *identifier = duplicateString(input, 1);
+            addToken(OPERATOR, identifier, 1, 0);
             input++;
         } else if (isalpha(*input) || *input == '_') {
             int length = 0;
-            while(isalpha(input[length]) || isdigit(input[length]) || input[length] == '_') {
+            while(isIdentifier(input[length])) {
                 length++;
             }
             char *name = duplicateString(input, length);
-            addToken(VARIABLE, "", 0, name, length);
+            addToken(VARIABLE, name, length, 0);
             if (getVariable(name, length) == NULL) {
                 addVariable(name, length, 1, offset);
                 offset += 8;
@@ -40,7 +45,7 @@ void tokenize(char *input) {
             input += length;
         } else if (isdigit(*input)) {
             int value = strtol(input, &input, 10);
-            addToken(NUMBER, "", value, "", 0);
+            addToken(NUMBER, "", 0, value);
         } else {
             fprintf(stderr, "%cはトークナイズできません。", *input);
             exit(1);
@@ -49,13 +54,12 @@ void tokenize(char *input) {
     return;
 }
 
-void addToken(int type, char *operator, int value, char *name, int length) {
+void addToken(int type, char *identifier, int length, int value) {
     Token *token = malloc(sizeof(Token));
     token->type = type;
-    token->operator = operator;
-    token->value = value;
-    token->name = name;
+    token->identifier = identifier;
     token->length = length;
+    token->value = value;
     vectorPush(tokenVector, token);
     return;
 }
@@ -78,4 +82,8 @@ char *duplicateString(char *start, int length) {
     }
     string[i] = '\0';
     return string;
+}
+
+bool isIdentifier(char c) {
+    return isalpha(c) || isdigit(c) || c == '_';
 }

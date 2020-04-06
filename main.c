@@ -2,7 +2,7 @@
 
 void outputError(int tokenIndex) {
     Token *token = (Token*)tokenVector->data[tokenIndex];
-    fprintf(stderr, "予期せぬ「%s」トークンがありました。\n", token->operator);
+    fprintf(stderr, "予期せぬ「%s」トークンがありました。\n", token->identifier);
     exit(1);
 }
 
@@ -24,8 +24,7 @@ int main(int argc, char **argv) {
 
     int i;
     for (i = 0; codeVector->length > i; i++) {
-        Node *node = (Node *)codeVector->data[i];
-        generate(node);
+        generate((Node *)codeVector->data[i]);
         printf("    pop     rax\n");
     }
 

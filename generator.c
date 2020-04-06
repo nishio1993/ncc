@@ -23,6 +23,13 @@ void generate(Node *node) {
         printf("    mov     [rax], rdi\n");
         printf("    push    rdi\n");
         return;
+    } else if (node->type == RET) {
+        generate(node->left);
+        printf("    pop     rax\n");
+        printf("    mov     rsp, rbp\n");
+        printf("    pop     rbp\n");
+        printf("    ret\n");
+        return;
     }
 
     generate(node->left);
@@ -30,7 +37,6 @@ void generate(Node *node) {
 
     printf("    pop     rdi\n");
     printf("    pop     rax\n");
-
     switch (node->type) {
         case ADD:
             printf("    add     rax, rdi\n");
@@ -78,7 +84,7 @@ void generateForVariable(Node *node) {
         printf("    push    rax\n");
         return;
     } else {
-        fprintf(stdout, "=の左に来るノードではありません。\n");
+        fprintf(stderr, "=の左に来るノードではありません。\n");
         exit(1);
     }
 }

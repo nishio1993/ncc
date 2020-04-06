@@ -1,3 +1,5 @@
+#ifndef _NCC
+#define _NCC
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,7 +10,6 @@ typedef enum TokenType {
     OPERATOR,   //演算子
     NUMBER,     //整数
     VARIABLE,   //変数
-    ASSIGNMENT, //代入
     END_OF_FILE //終端
 } TokenType;
 
@@ -23,15 +24,15 @@ typedef enum NodeType{
     LTE,    //<=
     VAR,    //変数
     ASG,    //=
-    NUM     //整数
+    NUM,    //整数
+    RET     //return
 } NodeType;
 
 typedef struct Token {
-    int type;       //TokenType
-    char *operator; //TokenType=OPERATORの時の値
-    int value;      //TokenType=NUMBERの時の値
-    char *name;     //TokenType=VARIABLEの時の名前
-    int length;     //変数名の長さ
+    int type;           //TokenType
+    char *identifier;   //TokenType=NUMBER以外の識別子
+    int length;         //identifierの長さ
+    int value;          //TokenType=NUMBERの値
 } Token;
 
 typedef struct Variable {
@@ -82,3 +83,4 @@ void mapSet(Map *map, char *key, void *val);
 void *mapGet(Map *map, const char *key);
 bool mapExists(Map *map, char *key);
 Variable *getVariable(char *name, int length);
+#endif
