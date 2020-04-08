@@ -24,7 +24,8 @@ int main(int argc, char **argv) {
 
     int i;
     for (i = 0; codeVector->length > i; i++) {
-        generate((Node *)codeVector->data[i]);
+        Node *node = codeVector->data[i];
+        generate(node);
         printf("    pop     rax\n");
     }
 

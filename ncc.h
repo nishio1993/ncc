@@ -8,6 +8,7 @@
 
 typedef enum TokenType {
     OPERATOR,   //演算子
+    SYNTAX,     //構文
     NUMBER,     //整数
     VARIABLE,   //変数
     END_OF_FILE //終端
@@ -25,6 +26,7 @@ typedef enum NodeType{
     VAR,    //変数
     ASG,    //=
     NUM,    //整数
+    IF,     //IF
     RET     //return
 } NodeType;
 
@@ -43,12 +45,14 @@ typedef struct Variable {
 } Variable;
 
 typedef struct Node {
-    int type;           //NodeType
-    struct Node *left;  //左辺
-    struct Node *right; //右辺
-    int value;          //NodeType=NUMの時の値
-    char *name;         //NodeType=VARの時の値
-    int length;         //変数名の長さ
+    int type;               //NodeType
+    struct Node *left;      //左辺
+    struct Node *right;     //右辺
+    int value;              //NodeType=NUMの時の値
+    char *name;             //NodeType=VARの時の値
+    int length;             //変数名の長さ
+    struct Node *condition; //IF条件式
+    struct Node *then;      //IF実行処理
 } Node;
 
 typedef struct Vector {
@@ -67,6 +71,7 @@ Vector *variableVector;
 Vector *nodeVector;
 Vector *codeVector;
 int tokenIndex;
+int endLabelIndex;
 
 void tokenize(char *input);
 

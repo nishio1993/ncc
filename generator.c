@@ -23,6 +23,15 @@ void generate(Node *node) {
         printf("    mov     [rax], rdi\n");
         printf("    push    rdi\n");
         return;
+    } else if (node->type == IF) {
+        generate(node->condition);
+        printf("    pop     rax\n");
+        printf("    cmp     rax, 0\n");
+        printf("    je      .Lend%d\n", endLabelIndex);
+        generate(node->then);
+        printf(".Lend%d:\n", endLabelIndex);
+        endLabelIndex++;
+        return;
     } else if (node->type == RET) {
         generate(node->left);
         printf("    pop     rax\n");

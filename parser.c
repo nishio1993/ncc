@@ -25,7 +25,8 @@ void parse() {
 void program() {
     codeVector = newVector();
     while(tokenIndex < tokenVector->length) {
-        vectorPush(codeVector, statement());
+        Node *node = statement();
+        vectorPush(codeVector, node);
     }
 }
 
@@ -33,9 +34,29 @@ void program() {
  * statement = expression ";" | "return" expression ";"
  */
 Node *statement() {
-    Node *node;
+    Node *node = calloc(1, sizeof(Node));
     Token *token = (Token*)tokenVector->data[tokenIndex];
-    if (strcmp(token->identifier, "return") == 0) {
+    if (strcmp(token->identifier, "if") == 0) {
+        tokenIndex++;
+        token = (Token*)tokenVector->data[tokenIndex];
+        if (strcmp(token->identifier, "(") != 0) {
+            outputError(tokenIndex);
+        }
+        tokenIndex++;
+        Node *condition = calloc(1, sizeof(Node));
+        condition = expression();
+        token = (Token*)tokenVector->data[tokenIndex];
+        if (strcmp(token->identifier, ")") != 0) {
+            outputError(tokenIndex);
+        }
+        tokenIndex++;
+        Node *then = calloc(1, sizeof(Node));
+        then = statement();
+        node->condition = condition;
+        node->then = then;
+        node->type = IF;
+        return node;
+    } else if (strcmp(token->identifier, "return") == 0) {
         tokenIndex++;
         node = newSymbolNode(RET, expression(), NULL);
     } else {

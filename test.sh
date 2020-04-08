@@ -16,13 +16,10 @@ try() {
 	fi
 }
 
-try 21 "5+20-4;"
 try 41 "12 + 34 - 5; "
-try 37 "5 * 6 + 7;"
-try 12 "12 / 4 + 9;"
-try 47 "5+ 6 *7;"
+try 37 "7 + 5 * 6;"
+try 12 "9 + 12 / 4;"
 try 15 "5 * ( 9- 6);"
-try 4 "(3 +5 ) /2;" 
 try 2 "- 3 +5;"
 try 6 "+ 2 + 4;"
 try 0 "0 == 1;"
@@ -41,10 +38,10 @@ try 1 "2 > 1;"
 try 0 "0 >= 1;"
 try 1 "1 >= 1;"
 try 1 "2 >= 1;"
-try 3 "a = 3;a;"
-try 14 "a = 2; b = (3+4); a*b;"
-try 5 "a = 5;b = a;b;"
 try 24 "ab3 = 3 * 4; c6d = ab3 * 2; e_f = c6d;"
 try 15 "return_a = 16 / 4; return return_a + 11;"
+try 47 "a = 23;if (11 == 11)a = 47; return a;"
+try 2 "a = 3;if (11 == 11)a = 2;b = 4;if (11 == 13)a = 4;return a;"
+try 15 "a = 10;if (1 == 1)a = 5;if (1 != 2)b = 15;return b;"
 
 echo OK
