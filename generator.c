@@ -1,6 +1,10 @@
 #include "ncc.h"
 
 void generateForVariable(Node *node);
+void labelIndexIncrement();
+
+int endLabelIndex;
+int beginLabelIndex;
 
 /**
  * アセンブリを標準出力する
@@ -24,13 +28,26 @@ void generate(Node *node) {
         printf("    push    rdi\n");
         return;
     } else if (node->type == IF) {
-        generate(node->condition);
+        generate(node->cond);
         printf("    pop     rax\n");
         printf("    cmp     rax, 0\n");
         printf("    je      .Lend%d\n", endLabelIndex);
         generate(node->then);
         printf(".Lend%d:\n", endLabelIndex);
-        endLabelIndex++;
+        labelIndexIncrement();
+        return;
+    } else if (node->type == FOR) {
+        generate(node->init);
+        printf(".Lbegin%d:\n", beginLabelIndex);
+        generate(node->cond);
+        printf("    pop     rax\n");
+        printf("    cmp     rax, 0\n");
+        printf("    je      .Lend%d\n", endLabelIndex);
+        generate(node->then);
+        generate(node->after);
+        printf("    jmp     .Lbegin%d\n", beginLabelIndex);
+        printf(".Lend%d:\n", endLabelIndex);
+        labelIndexIncrement();
         return;
     } else if (node->type == RET) {
         generate(node->left);
@@ -96,4 +113,9 @@ void generateForVariable(Node *node) {
         fprintf(stderr, "=の左に来るノードではありません。\n");
         exit(1);
     }
+}
+
+void labelIndexIncrement() {
+    beginLabelIndex++;
+    endLabelIndex++;
 }

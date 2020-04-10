@@ -17,9 +17,13 @@ void tokenize(char *input) {
         if (isspace(*input)) {
             input++;
         } else if (strncmp("if", input, 2) == 0
-                && isIdentifier(input[6]) == false) {
+                && isIdentifier(input[2]) == false) {
             addToken(SYNTAX, "if", 2, 0);
             input += 2;
+        } else if (strncmp("for", input, 3) == 0
+                && isIdentifier(input[3]) == false) {
+            addToken(SYNTAX, "for", 3, 0);
+            input += 3;
         } else if (strncmp("return", input, 6) == 0
                 && isIdentifier(input[6]) == false) {
             addToken(SYNTAX, "return", 6, 0);

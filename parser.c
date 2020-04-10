@@ -43,8 +43,8 @@ Node *statement() {
             outputError(tokenIndex);
         }
         tokenIndex++;
-        Node *condition = calloc(1, sizeof(Node));
-        condition = expression();
+        Node *cond = calloc(1, sizeof(Node));
+        cond = expression();
         token = (Token*)tokenVector->data[tokenIndex];
         if (strcmp(token->identifier, ")") != 0) {
             outputError(tokenIndex);
@@ -52,9 +52,35 @@ Node *statement() {
         tokenIndex++;
         Node *then = calloc(1, sizeof(Node));
         then = statement();
-        node->condition = condition;
+        node->cond = cond;
         node->then = then;
         node->type = IF;
+        return node;
+    } else if (strcmp(token->identifier, "for") == 0) {
+        tokenIndex++;
+        token = (Token*)tokenVector->data[tokenIndex];
+        if (strcmp(token->identifier, "(") != 0) {
+            outputError(tokenIndex);
+        }
+        tokenIndex++;
+        Node *init = calloc(1, sizeof(Node));
+        Node *cond = calloc(1, sizeof(Node));
+        Node *after = calloc(1, sizeof(Node));
+        Node *then = calloc(1, sizeof(Node));
+        init = statement();
+        cond = statement();
+        after = expression();
+        token = (Token*)tokenVector->data[tokenIndex];
+        if (strcmp(token->identifier, ")") != 0) {
+            outputError(tokenIndex);
+        }
+        tokenIndex++;
+        then = statement();
+        node->type = FOR;
+        node->init = init;
+        node->cond = cond;
+        node->after = after;
+        node->then = then;
         return node;
     } else if (strcmp(token->identifier, "return") == 0) {
         tokenIndex++;
