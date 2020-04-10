@@ -26,8 +26,9 @@ typedef enum NodeType{
     VAR,    //変数
     ASG,    //=
     NUM,    //整数
-    IF,     //IF
-    FOR,    //FOR
+    IF,     //if
+    FOR,    //for
+    WHL,    //while
     RET     //return
 } NodeType;
 

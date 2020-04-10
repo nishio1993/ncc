@@ -49,6 +49,17 @@ void generate(Node *node) {
         printf(".Lend%d:\n", endLabelIndex);
         labelIndexIncrement();
         return;
+    } else if (node->type == WHL) {
+        printf(".Lbegin%d:\n", beginLabelIndex);
+        generate(node->cond);
+        printf("    pop     rax\n");
+        printf("    cmp     rax, 0\n");
+        printf("    je      .Lend%d\n", endLabelIndex);
+        generate(node->then);
+        printf("    jmp     .Lbegin%d\n", beginLabelIndex);
+        printf(".Lend%d:\n", endLabelIndex);
+        labelIndexIncrement();
+        return;
     } else if (node->type == RET) {
         generate(node->left);
         printf("    pop     rax\n");

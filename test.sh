@@ -43,5 +43,6 @@ try 15 "return_a = 16 / 4; return return_a + 11;"
 try 47 "a = 23;if (11 == 11)a = 47; return a;"
 try 2 "a = 3;if (11 == 11)a = 2;b = 4;if (11 == 13)a = 4;return a;"
 try 45 "sum = 0;for (i = 0;i < 10;i = i + 1)sum = sum + i;return sum;"
+try 10 "sum = 0;while(sum < 10)sum = sum + 1;return sum;"
 
 echo OK

@@ -24,6 +24,10 @@ void tokenize(char *input) {
                 && isIdentifier(input[3]) == false) {
             addToken(SYNTAX, "for", 3, 0);
             input += 3;
+        } else if (strncmp("while", input, 5) == 0
+                && isIdentifier(input[5]) == false) {
+            addToken(SYNTAX, "while", 5, 0);
+            input += 5;
         } else if (strncmp("return", input, 6) == 0
                 && isIdentifier(input[6]) == false) {
             addToken(SYNTAX, "return", 6, 0);

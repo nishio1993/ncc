@@ -82,6 +82,26 @@ Node *statement() {
         node->after = after;
         node->then = then;
         return node;
+    } else if (strcmp(token->identifier, "while") == 0) {
+        tokenIndex++;
+        token = (Token*)tokenVector->data[tokenIndex];
+        if (strcmp(token->identifier, "(") != 0) {
+            outputError(tokenIndex);
+        }
+        tokenIndex++;
+        Node *cond = calloc(1, sizeof(Node));
+        cond = expression();
+        token = (Token*)tokenVector->data[tokenIndex];
+        if (strcmp(token->identifier, ")") != 0) {
+            outputError(tokenIndex);
+        }
+        tokenIndex++;
+        Node *then = calloc(1, sizeof(Node));
+        then = statement();
+        node->type = WHL;
+        node->cond = cond;
+        node->then = then;
+        return node;
     } else if (strcmp(token->identifier, "return") == 0) {
         tokenIndex++;
         node = newSymbolNode(RET, expression(), NULL);
