@@ -31,12 +31,29 @@ void program() {
 }
 
 /**
- * statement = expression ";" | "return" expression ";"
+ * statement = expression ";"
+ *           | "{" stmt* "}"
+ *           | "if" "(" expression ")" statement 
+ *           | "for" "(" expression? ";" expression? ";" expression? ")" statement
+ *           | "while" "(" expression ")" statement
+ *           | "return" expression ";"
  */
 Node *statement() {
     Node *node = calloc(1, sizeof(Node));
     Token *token = (Token*)tokenVector->data[tokenIndex];
-    if (strcmp(token->identifier, "if") == 0) {
+    if (strcmp(token->identifier, "{") == 0){
+        tokenIndex++;
+        Vector *blockVector = newVector();
+        while(strcmp(token->identifier, "}") != 0) {
+            Node *block = statement();
+            vectorPush(blockVector, block);
+            token = (Token*)tokenVector->data[tokenIndex];
+        }
+        tokenIndex++;
+        node->type = BLK;
+        node->block = blockVector;
+        return node;
+    } else if (strcmp(token->identifier, "if") == 0) {
         tokenIndex++;
         token = (Token*)tokenVector->data[tokenIndex];
         if (strcmp(token->identifier, "(") != 0) {
@@ -52,9 +69,9 @@ Node *statement() {
         tokenIndex++;
         Node *then = calloc(1, sizeof(Node));
         then = statement();
+        node->type = IF;
         node->cond = cond;
         node->then = then;
-        node->type = IF;
         return node;
     } else if (strcmp(token->identifier, "for") == 0) {
         tokenIndex++;

@@ -27,6 +27,14 @@ void generate(Node *node) {
         printf("    mov     [rax], rdi\n");
         printf("    push    rdi\n");
         return;
+    } else if (node->type == BLK) {
+        int blockIndex = 0;
+        while(blockIndex < node->block->length) {
+            Node *code = node->block->data[blockIndex];
+            generate(code);
+            blockIndex++;
+        }
+        return;
     } else if (node->type == IF) {
         generate(node->cond);
         printf("    pop     rax\n");

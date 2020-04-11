@@ -29,6 +29,7 @@ typedef enum NodeType{
     IF,     //if
     FOR,    //for
     WHL,    //while
+    BLK,    //{}
     RET     //return
 } NodeType;
 
@@ -47,16 +48,17 @@ typedef struct Variable {
 } Variable;
 
 typedef struct Node {
-    int type;           //NodeType
-    struct Node *left;  //左辺
-    struct Node *right; //右辺
-    int value;          //NodeType=NUMの時の値
-    char *name;         //NodeType=VARの時の値
-    int length;         //変数名の長さ
-    struct Node *init;  //初期化式
-    struct Node *cond;  //条件式
-    struct Node *after; //変化式
-    struct Node *then;  //実行処理
+    int type;               //NodeType
+    struct Node *left;      //左辺
+    struct Node *right;     //右辺
+    int value;              //NodeType=NUMの時の値
+    char *name;             //NodeType=VARの時の値
+    int length;             //変数名の長さ
+    struct Node *init;      //初期化式
+    struct Node *cond;      //条件式
+    struct Node *after;     //変化式
+    struct Node *then;      //実行処理
+    struct Vector *block;   //ブロック
 } Node;
 
 typedef struct Vector {

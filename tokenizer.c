@@ -14,7 +14,11 @@ void tokenize(char *input) {
     int offset = 8;
 
     while (*input) {
-        if (isspace(*input)) {
+        if (isspace(*input) || *input == '\n' || *input == '\r' ||*input == '\t') {
+            input++;
+        } else if (strchr("{}", *input) != NULL) {
+            char *identifier = duplicateString(input, 1);
+            addToken(SYNTAX, identifier, 1, 0);
             input++;
         } else if (strncmp("if", input, 2) == 0
                 && isIdentifier(input[2]) == false) {
