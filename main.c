@@ -1,8 +1,8 @@
 #include "ncc.h"
 
-void outputError(int tokenIndex) {
-    Token *token = (Token*)tokenVector->data[tokenIndex];
-    fprintf(stderr, "予期せぬ「%s」トークンがありました。\n", token->identifier);
+void outputError(int index) {
+    Token *token = (Token*)tokenVector->data[index];
+    fprintf(stderr, "%d行目%d文字目：予期せぬ「%s」トークンがありました。\n", token->row, token->col, token->ident);
     exit(1);
 }
 
@@ -13,18 +13,18 @@ int main(int argc, char **argv) {
     }
 
     tokenize(argv[1]);
+    int j;
+    for (j = 0; j < tokenVector->length; j++) {
+        Token *token = (Token*)tokenVector->data[j];
+    }
     parse();
 
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
-    printf("main:\n");
-    printf("    push    rbp\n");
-    printf("    mov     rbp, rsp\n");
-    printf("    sub     rsp, %d\n", variableVector->length * 8);
 
     int i;
     for (i = 0; codeVector->length > i; i++) {
-        Node *node = codeVector->data[i];
+        Node *node = (Node*)codeVector->data[i];
         generate(node);
         printf("    pop     rax\n");
     }

@@ -27,6 +27,21 @@ void generate(Node *node) {
         printf("    mov     [rax], rdi\n");
         printf("    push    rdi\n");
         return;
+    } else if (node->type == FNK) {
+        printf("%s:\n", node->name);
+        printf("    push    rbp\n");
+        printf("    mov     rbp, rsp\n");
+        printf("    sub     rsp, %d\n", variableVector->length * 8);
+        int blockIndex = 0;
+        while(blockIndex < node->block->length) {
+            Node *code = node->block->data[blockIndex];
+            generate(code);
+            blockIndex++;
+        }
+        printf("    mov     rsp, rbp\n");
+        printf("    pop     rbp\n");
+        printf("    ret\n");
+        return;
     } else if (node->type == BLK) {
         int blockIndex = 0;
         while(blockIndex < node->block->length) {

@@ -16,6 +16,7 @@ try() {
 	fi
 }
 
+<< COMMENTOUT
 try 41 "12 + 34 - 5; "
 try 37 "7 + 5 * 6;"
 try 12 "9 + 12 / 4;"
@@ -69,5 +70,23 @@ while(i < 10) {
 }
 return sum;
 "
+COMMENTOUT
+try 8 "
+main() {
+	ab = 3 * (2 + 4);
+	cd = 12 / (9 - 3);
+	if (ab == 18) {
+		for (i = 0; i < 10; i = i + 1) {
+			ab = ab + 2;
+			cd = cd + 3;
+		}
+	}
+
+	while (cd > 11) {
+		cd = cd - 4;
+	}
+
+	return cd;
+}"
 
 echo OK

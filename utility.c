@@ -40,8 +40,8 @@ void *mapGet(Map *map, const char *key) {
     return NULL;
 }
 
-Variable *getVariable(char *name, int length) {
-    int i;
+Variable *getVariable(char *name, uint8_t length) {
+    int16_t i;
     for (i = 0; variableVector->data[i]; i++) {
         Variable *variable = variableVector->data[i];
         if (strncmp(variable->name, name, length) == 0) {
@@ -49,4 +49,14 @@ Variable *getVariable(char *name, int length) {
         }
     }
     return NULL;
+}
+
+char *duplicateString(char *start, uint8_t length) {
+    char *string = malloc((sizeof(char) * length) + 1);
+    uint8_t i;
+    for (i = 0; i < length; i++) {
+        string[i] = start[i];
+    }
+    string[i] = '\0';
+    return string;
 }

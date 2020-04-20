@@ -14,6 +14,9 @@ Node *primary(void);
 Node *newSymbolNode(int type, Node *left, Node *right);
 Node *newNumberNode(int value);
 Node *newVariableNode(char *name, int length);
+Vector *newBlockVector(void);
+
+int tokenIndex;
 
 void parse() {
     program();
@@ -24,9 +27,11 @@ void parse() {
  */
 void program() {
     codeVector = newVector();
-    while(tokenIndex < tokenVector->length) {
+    Token *token = (Token*)tokenVector->data[0];
+    while(token->type != END_OF_FILE) {
         Node *node = statement();
         vectorPush(codeVector, node);
+        token = (Token *)tokenVector->data[tokenIndex];
     }
 }
 
@@ -41,29 +46,23 @@ void program() {
 Node *statement() {
     Node *node = calloc(1, sizeof(Node));
     Token *token = (Token*)tokenVector->data[tokenIndex];
-    if (strcmp(token->identifier, "{") == 0){
+    if (strcmp(token->ident, "{") == 0){
         tokenIndex++;
-        Vector *blockVector = newVector();
-        while(strcmp(token->identifier, "}") != 0) {
-            Node *block = statement();
-            vectorPush(blockVector, block);
-            token = (Token*)tokenVector->data[tokenIndex];
-        }
-        tokenIndex++;
+        Vector *blockVector = newBlockVector();
         node->type = BLK;
         node->block = blockVector;
         return node;
-    } else if (strcmp(token->identifier, "if") == 0) {
+    } else if (strcmp(token->ident, "if") == 0) {
         tokenIndex++;
         token = (Token*)tokenVector->data[tokenIndex];
-        if (strcmp(token->identifier, "(") != 0) {
+        if (strcmp(token->ident, "(") != 0) {
             outputError(tokenIndex);
         }
         tokenIndex++;
         Node *cond = calloc(1, sizeof(Node));
         cond = expression();
         token = (Token*)tokenVector->data[tokenIndex];
-        if (strcmp(token->identifier, ")") != 0) {
+        if (strcmp(token->ident, ")") != 0) {
             outputError(tokenIndex);
         }
         tokenIndex++;
@@ -73,10 +72,10 @@ Node *statement() {
         node->cond = cond;
         node->then = then;
         return node;
-    } else if (strcmp(token->identifier, "for") == 0) {
+    } else if (strcmp(token->ident, "for") == 0) {
         tokenIndex++;
         token = (Token*)tokenVector->data[tokenIndex];
-        if (strcmp(token->identifier, "(") != 0) {
+        if (strcmp(token->ident, "(") != 0) {
             outputError(tokenIndex);
         }
         tokenIndex++;
@@ -88,7 +87,7 @@ Node *statement() {
         cond = statement();
         after = expression();
         token = (Token*)tokenVector->data[tokenIndex];
-        if (strcmp(token->identifier, ")") != 0) {
+        if (strcmp(token->ident, ")") != 0) {
             outputError(tokenIndex);
         }
         tokenIndex++;
@@ -99,17 +98,17 @@ Node *statement() {
         node->after = after;
         node->then = then;
         return node;
-    } else if (strcmp(token->identifier, "while") == 0) {
+    } else if (strcmp(token->ident, "while") == 0) {
         tokenIndex++;
         token = (Token*)tokenVector->data[tokenIndex];
-        if (strcmp(token->identifier, "(") != 0) {
+        if (strcmp(token->ident, "(") != 0) {
             outputError(tokenIndex);
         }
         tokenIndex++;
         Node *cond = calloc(1, sizeof(Node));
         cond = expression();
         token = (Token*)tokenVector->data[tokenIndex];
-        if (strcmp(token->identifier, ")") != 0) {
+        if (strcmp(token->ident, ")") != 0) {
             outputError(tokenIndex);
         }
         tokenIndex++;
@@ -119,7 +118,7 @@ Node *statement() {
         node->cond = cond;
         node->then = then;
         return node;
-    } else if (strcmp(token->identifier, "return") == 0) {
+    } else if (strcmp(token->ident, "return") == 0) {
         tokenIndex++;
         node = newSymbolNode(RET, expression(), NULL);
     } else {
@@ -127,8 +126,10 @@ Node *statement() {
     }
 
     token = (Token*)tokenVector->data[tokenIndex];
-    if (strcmp(token->identifier, ";") == 0) {
+    if (strcmp(token->ident, ";") == 0) {
         tokenIndex++;
+        return node;
+    } else if (token->type == END_OF_FILE) {
         return node;
     } else {
         outputError(tokenIndex);
@@ -149,7 +150,7 @@ Node *expression() {
 Node *assign() {
     Node *node = equality();
     Token *token = (Token*)tokenVector->data[tokenIndex];
-    if (strcmp(token->identifier, "=") == 0) {
+    if (strcmp(token->ident, "=") == 0) {
         tokenIndex++;
         return newSymbolNode(ASG, node, assign());
     } else {
@@ -163,10 +164,10 @@ Node *assign() {
 Node *equality() {
     Node *node = relational();
     Token *token = (Token*)tokenVector->data[tokenIndex];
-    if (strcmp(token->identifier, "==") == 0) {
+    if (strcmp(token->ident, "==") == 0) {
         tokenIndex++;
         return newSymbolNode(EQ, node, relational());
-    } else if (strcmp(token->identifier, "!=") == 0) {
+    } else if (strcmp(token->ident, "!=") == 0) {
         tokenIndex++;
         return newSymbolNode(NEQ, node, relational());
     } else {
@@ -180,16 +181,16 @@ Node *equality() {
 Node *relational() {
     Node *node = add();
     Token *token = (Token*)tokenVector->data[tokenIndex];
-    if (strcmp(token->identifier, "<") == 0) {
+    if (strcmp(token->ident, "<") == 0) {
         tokenIndex++;
         return newSymbolNode(LT, node, add());
-    } else if (strcmp(token->identifier, ">") == 0) {
+    } else if (strcmp(token->ident, ">") == 0) {
         tokenIndex++;
         return newSymbolNode(LT, add(), node);
-    } else if (strcmp(token->identifier, "<=") == 0) {
+    } else if (strcmp(token->ident, "<=") == 0) {
         tokenIndex++;
         return newSymbolNode(LTE, node, add());
-    } else if (strcmp(token->identifier, ">=") == 0) {
+    } else if (strcmp(token->ident, ">=") == 0) {
         tokenIndex++;
         return newSymbolNode(LTE, add(), node);
     } else {
@@ -203,10 +204,10 @@ Node *relational() {
 Node *add() {
     Node *node = mul();
     Token *token = (Token*)tokenVector->data[tokenIndex];
-    if (strcmp(token->identifier, "+") == 0) {
+    if (strcmp(token->ident, "+") == 0) {
         tokenIndex++;
         return newSymbolNode(ADD, node, add());
-    } else if (strcmp(token->identifier, "-") == 0) {
+    } else if (strcmp(token->ident, "-") == 0) {
         tokenIndex++;
         return newSymbolNode(SUB, node, add());
     } else {
@@ -220,10 +221,10 @@ Node *add() {
 Node *mul() {
     Node *node = unary();
     Token *token = (Token*)tokenVector->data[tokenIndex];
-    if (strcmp(token->identifier, "*") == 0) {
+    if (strcmp(token->ident, "*") == 0) {
         tokenIndex++;
         return newSymbolNode(MUL, node, mul());
-    } else if (strcmp(token->identifier, "/") == 0) {
+    } else if (strcmp(token->ident, "/") == 0) {
         tokenIndex++;
         return newSymbolNode(DIV, node, mul());
     } else {
@@ -236,10 +237,10 @@ Node *mul() {
  */
 Node *unary() {
     Token *token = (Token*)tokenVector->data[tokenIndex];
-    if (strcmp(token->identifier, "-") == 0) {
+    if (strcmp(token->ident, "-") == 0) {
         Node *node = newNumberNode(0);
         return newSymbolNode(SUB, node, unary());
-    } else if (strcmp(token->identifier, "+") == 0) {
+    } else if (strcmp(token->ident, "+") == 0) {
         tokenIndex++;
         return unary();
     } else {
@@ -248,19 +249,48 @@ Node *unary() {
 }
 
 /**
- * primary = num | "(" expr ")"
+ * primary = num
+ *         | ident ("(" ")")?
+ *         | "(" expr ")"
  */
 Node *primary() {
     Token *token = (Token*)tokenVector->data[tokenIndex];
     if (token->type == NUMBER) {
         return newNumberNode(token->value);
     } else if (token->type == VARIABLE) {
-        return newVariableNode(token->identifier, token->length);
-    } else if (strcmp(token->identifier, "(") == 0) {
+        return newVariableNode(token->ident, token->length);
+    } else if (token->type == FUNCTION) {
+        char *name = duplicateString(token->ident, token->length);
+        int length = token->length;
+        tokenIndex++;
+        token = (Token*)tokenVector->data[tokenIndex];
+        if (strcmp(token->ident, "(") != 0) {
+            outputError(tokenIndex);
+        }
+        tokenIndex++;
+        token = (Token*)tokenVector->data[tokenIndex];
+        if (strcmp(token->ident, ")") != 0) {
+            outputError(tokenIndex);
+        }
+        tokenIndex++;
+        token = (Token*)tokenVector->data[tokenIndex];
+        Node *node = calloc(1, sizeof(Node));
+        node->name = name;
+        node->length = length;
+        if (strcmp(token->ident, "{") == 0) {
+            tokenIndex++;
+            Vector *block = newBlockVector();
+            node->type = FNK;
+            node->block = block;
+        } else {
+            node->type = CAL;
+        }
+        return node;
+    } else if (strcmp(token->ident, "(") == 0) {
         tokenIndex++;
         Node *node = expression();
         token = (Token*)tokenVector->data[tokenIndex];
-        if (strcmp(token->identifier, ")") != 0) {
+        if (strcmp(token->ident, ")") != 0) {
             outputError(tokenIndex);
         }
         tokenIndex++;
@@ -300,4 +330,19 @@ Node *newVariableNode(char *name, int length) {
     node->name = name;
     node->length = length;
     return node;
+}
+
+/**
+ * ブロック構文を返却する。
+ */
+Vector *newBlockVector() {
+    Token *token = (Token*)tokenVector->data[tokenIndex];
+    Vector *blockVector = newVector();
+    while(strcmp(token->ident, "}") != 0) {
+        Node *block = statement();
+        vectorPush(blockVector, block);
+        token = (Token*)tokenVector->data[tokenIndex];
+    }
+    tokenIndex++;
+    return blockVector;
 }
