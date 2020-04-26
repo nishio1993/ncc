@@ -16,7 +16,7 @@ void tokenize(char *input) {
     uint16_t col = 1;
 
     while (*input) {
-        if (isspace(*input) ||*input == '\t') {
+        if (*input == ' ' ||*input == '\t') {
             input++;
             col++;
         } else if (*input == '\n' || *input == '\r' ) {

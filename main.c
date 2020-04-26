@@ -13,17 +13,12 @@ int main(int argc, char **argv) {
     }
 
     tokenize(argv[1]);
-    int j;
-    for (j = 0; j < tokenVector->length; j++) {
-        Token *token = (Token*)tokenVector->data[j];
-    }
     parse();
 
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
 
-    int i;
-    for (i = 0; codeVector->length > i; i++) {
+    for (uint8_t i = 0; codeVector->length > i; i++) {
         Node *node = (Node*)codeVector->data[i];
         generate(node);
         printf("    pop     rax\n");

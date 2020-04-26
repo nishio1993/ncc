@@ -3,8 +3,8 @@
 void generateForVariable(Node *node);
 void labelIndexIncrement();
 
-int endLabelIndex;
-int beginLabelIndex;
+uint16_t endLabelIndex;
+uint16_t beginLabelIndex;
 
 /**
  * アセンブリを標準出力する
@@ -31,8 +31,8 @@ void generate(Node *node) {
         printf("%s:\n", node->name);
         printf("    push    rbp\n");
         printf("    mov     rbp, rsp\n");
-        printf("    sub     rsp, %d\n", variableVector->length * 8);
-        int blockIndex = 0;
+        printf("    sub     rsp, %u\n", variableVector->length * 8);
+        uint16_t blockIndex = 0;
         while(blockIndex < node->block->length) {
             Node *code = node->block->data[blockIndex];
             generate(code);
@@ -41,6 +41,10 @@ void generate(Node *node) {
         printf("    mov     rsp, rbp\n");
         printf("    pop     rbp\n");
         printf("    ret\n");
+        return;
+    } else if (node->type == CAL) {
+        printf("    call    %s\n", node->name);
+        printf("    push    rax\n");
         return;
     } else if (node->type == BLK) {
         int blockIndex = 0;
@@ -54,33 +58,33 @@ void generate(Node *node) {
         generate(node->cond);
         printf("    pop     rax\n");
         printf("    cmp     rax, 0\n");
-        printf("    je      .Lend%d\n", endLabelIndex);
+        printf("    je      .Lend%u\n", endLabelIndex);
         generate(node->then);
-        printf(".Lend%d:\n", endLabelIndex);
+        printf(".Lend%u:\n", endLabelIndex);
         labelIndexIncrement();
         return;
     } else if (node->type == FOR) {
         generate(node->init);
-        printf(".Lbegin%d:\n", beginLabelIndex);
+        printf(".Lbegin%u:\n", beginLabelIndex);
         generate(node->cond);
         printf("    pop     rax\n");
         printf("    cmp     rax, 0\n");
-        printf("    je      .Lend%d\n", endLabelIndex);
+        printf("    je      .Lend%u\n", endLabelIndex);
         generate(node->then);
         generate(node->after);
-        printf("    jmp     .Lbegin%d\n", beginLabelIndex);
-        printf(".Lend%d:\n", endLabelIndex);
+        printf("    jmp     .Lbegin%u\n", beginLabelIndex);
+        printf(".Lend%u:\n", endLabelIndex);
         labelIndexIncrement();
         return;
     } else if (node->type == WHL) {
-        printf(".Lbegin%d:\n", beginLabelIndex);
+        printf(".Lbegin%u:\n", beginLabelIndex);
         generate(node->cond);
         printf("    pop     rax\n");
         printf("    cmp     rax, 0\n");
-        printf("    je      .Lend%d\n", endLabelIndex);
+        printf("    je      .Lend%u\n", endLabelIndex);
         generate(node->then);
-        printf("    jmp     .Lbegin%d\n", beginLabelIndex);
-        printf(".Lend%d:\n", endLabelIndex);
+        printf("    jmp     .Lbegin%u\n", beginLabelIndex);
+        printf(".Lend%u:\n", endLabelIndex);
         labelIndexIncrement();
         return;
     } else if (node->type == RET) {

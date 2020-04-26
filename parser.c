@@ -11,12 +11,12 @@ Node *mul(void);
 Node *unary(void);
 Node *primary(void);
 
-Node *newSymbolNode(int type, Node *left, Node *right);
-Node *newNumberNode(int value);
-Node *newVariableNode(char *name, int length);
+Node *newSymbolNode(int8_t type, Node *left, Node *right);
+Node *newNumberNode(int32_t value);
+Node *newVariableNode(char *name, uint8_t length);
 Vector *newBlockVector(void);
 
-int tokenIndex;
+uint16_t tokenIndex;
 
 void parse() {
     program();
@@ -129,7 +129,8 @@ Node *statement() {
     if (strcmp(token->ident, ";") == 0) {
         tokenIndex++;
         return node;
-    } else if (token->type == END_OF_FILE) {
+    } else if (token->type == END_OF_FILE
+            || node->type == FNK) {
         return node;
     } else {
         outputError(tokenIndex);
@@ -301,7 +302,7 @@ Node *primary() {
 /**
  * 左辺にleft、右辺にrightを持つノードを返却する。
  */
-Node *newSymbolNode(int type, Node *left, Node *right) {
+Node *newSymbolNode(int8_t type, Node *left, Node *right) {
     Node *node = calloc(1, sizeof(Node));
     node->type = type;
     node->left = left;
@@ -312,7 +313,7 @@ Node *newSymbolNode(int type, Node *left, Node *right) {
 /**
  * 数値を持つノードを返却する。
  */
-Node *newNumberNode(int value) {
+Node *newNumberNode(int32_t value) {
     tokenIndex++;
     Node *node = calloc(1, sizeof(Node));
     node->type = NUM;
@@ -323,7 +324,7 @@ Node *newNumberNode(int value) {
 /**
  * 変数を持つノードを返却する。
  */
-Node *newVariableNode(char *name, int length) {
+Node *newVariableNode(char *name, uint8_t length) {
     tokenIndex++;
     Node *node = calloc(1, sizeof(Node));
     node->type = VAR;

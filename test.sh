@@ -89,4 +89,16 @@ main() {
 	return cd;
 }"
 
+try 10 "
+getNumber() {
+	return 3;
+}
+
+main() {
+	abc = 7;
+	abc = abc + getNumber();
+	return abc;
+}
+"
+
 echo OK
