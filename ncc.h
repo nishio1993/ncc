@@ -53,6 +53,12 @@ typedef struct Variable {
     uint8_t offset; //RBPからのビット距離
 } Variable;
 
+typedef struct Vector {
+    void **data;        //要素
+    uint16_t capacity;  //最大要素数
+    uint16_t length;    //現在要素数
+} Vector;
+
 typedef struct Node {
     int8_t type;            //NodeType
     struct Node *left;      //左辺
@@ -64,14 +70,9 @@ typedef struct Node {
     struct Node *cond;      //条件式
     struct Node *after;     //変化式
     struct Node *then;      //実行処理
-    struct Vector *block;   //ブロック
+    Vector *block;   //ブロック
+    Vector *arg;     //引数
 } Node;
-
-typedef struct Vector {
-    void **data;        //要素
-    uint16_t capacity;  //最大要素数
-    uint16_t length;    //現在要素数
-} Vector;
 
 typedef struct Map {
     Vector *key;    //キー

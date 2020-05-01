@@ -1,96 +1,117 @@
 #include "ncc.h"
 
+void codeProceed(uint8_t count);
+void codeNewLine(void);
 void addToken(int8_t type, char *ident, uint8_t length, int32_t value, uint16_t row, uint16_t col);
 void addVariable(char *name, uint8_t length, uint8_t byte, uint8_t offset);
 bool isIdentifier(char c);
 uint8_t getDigits(uint8_t num);
 
+char *sourceCode;
+uint8_t offset = 8;
+uint16_t row = 1;
+uint16_t col = 1;
+
 /**
  * 与えられた式をトークンに分解する
  */
 void tokenize(char *input) {
+    sourceCode = input;
     tokenVector = newVector();
     variableVector = newVector();
-    uint8_t offset = 8;
-    uint16_t row = 1;
-    uint16_t col = 1;
 
-    while (*input) {
-        if (*input == ' ' ||*input == '\t') {
-            input++;
-            col++;
-        } else if (*input == '\n' || *input == '\r' ) {
-            input++;
-            row++;
-            col = 1;
-        } else if (strchr("{}", *input) != NULL) {
-            char *ident = duplicateString(input, 1);
+    while (*sourceCode != '\0') {
+        if (strncmp("//", sourceCode, 2) == 0) {
+            codeProceed(2);
+            while (*sourceCode != '\n') {
+                codeProceed(1);
+            }
+            codeNewLine();
+        } else if (strncmp("/*", sourceCode, 2) == 0) {
+            codeProceed(2);
+            while (strncmp("*/", sourceCode, 2) != 0) {
+                if (*sourceCode == '\n') {
+                    codeNewLine();
+                } else {
+                    codeProceed(1);
+                }
+            }
+            codeProceed(2);
+        } else if (*sourceCode == ' ' ||*sourceCode == '\t') {
+            codeProceed(1);
+        } else if (*sourceCode == '\n') {
+            codeNewLine();
+        } else if (strchr("{}", *sourceCode) != NULL) {
+            char *ident = duplicateString(sourceCode, 1);
             addToken(SYNTAX, ident, 1, 0, row, col);
-            input++;
-            col++;
-        } else if (strncmp("if", input, 2) == 0
-                && isIdentifier(input[2]) == false) {
+            codeProceed(1);
+        } else if (strncmp("if", sourceCode, 2) == 0
+                && isIdentifier(sourceCode[2]) == false) {
             addToken(SYNTAX, "if", 2, 0, row, col);
-            input += 2;
-            col += 2;
-        } else if (strncmp("for", input, 3) == 0
-                && isIdentifier(input[3]) == false) {
+            codeProceed(2);
+        } else if (strncmp("for", sourceCode, 3) == 0
+                && isIdentifier(sourceCode[3]) == false) {
             addToken(SYNTAX, "for", 3, 0, row, col);
-            input += 3;
-            col += 3;
-        } else if (strncmp("while", input, 5) == 0
-                && isIdentifier(input[5]) == false) {
+            codeProceed(3);
+        } else if (strncmp("while", sourceCode, 5) == 0
+                && isIdentifier(sourceCode[5]) == false) {
             addToken(SYNTAX, "while", 5, 0, row, col);
-            input += 5;
-            col += 5;
-        } else if (strncmp("return", input, 6) == 0
-                && isIdentifier(input[6]) == false) {
+            codeProceed(5);
+        } else if (strncmp("return", sourceCode, 6) == 0
+                && isIdentifier(sourceCode[6]) == false) {
             addToken(SYNTAX, "return", 6, 0, row, col);
-            input += 6;
-            col += 6;
-        } else if (strncmp("==", input, 2) == 0
-                || strncmp("!=", input, 2) == 0
-                || strncmp("<=", input, 2) == 0
-                || strncmp(">=", input, 2) == 0) {
-            char *ident = duplicateString(input, 2);
+            codeProceed(6);
+        } else if (strncmp("==", sourceCode, 2) == 0
+                || strncmp("!=", sourceCode, 2) == 0
+                || strncmp("<=", sourceCode, 2) == 0
+                || strncmp(">=", sourceCode, 2) == 0) {
+            char *ident = duplicateString(sourceCode, 2);
             addToken(OPERATOR, ident, 2, 0, row, col);
-            input +=2;
-            col += 2;
-        } else if (strchr("+-*/()<>;=", *input) != NULL) {
-            char *ident = duplicateString(input, 1);
+            codeProceed(2);
+        } else if (strchr("+-*/()<>;=", *sourceCode) != NULL) {
+            char *ident = duplicateString(sourceCode, 1);
             addToken(OPERATOR, ident, 1, 0, row, col);
-            input++;
-            col++;
-        } else if (isalpha(*input) || *input == '_') {
+            codeProceed(1);
+        } else if (isalpha(*sourceCode) || *sourceCode == '_') {
             int length = 0;
-            while(isIdentifier(input[length])) {
+            while(isIdentifier(sourceCode[length])) {
                 length++;
             }
-            char *name = duplicateString(input, length);
-            if (input[length] == '(' && input[length + 1] == ')') {
+            char *name = duplicateString(sourceCode, length);
+            if (sourceCode[length] == '(') {
                 addToken(FUNCTION, name, length, 0, row, col);
-                input += length;
-                col += length;
             } else {
                 addToken(VARIABLE, name, length, 0, row, col);
                 if (getVariable(name, length) == NULL) {
                     addVariable(name, length, 1, offset);
                     offset += 8;
                 }
-                input += length;
-                col += length;
             }
-        } else if (isdigit(*input)) {
-            int value = strtol(input, &input, 10);
+            codeProceed(length);
+        } else if (isdigit(*sourceCode)) {
+            int value = strtol(sourceCode, &sourceCode, 10);
             int length = getDigits(value);
             addToken(NUMBER, "", 0, value, row, col);
             col += length;
         } else {
-            fprintf(stderr, "%d行目%d文字目：%cはトークナイズできません。", row, col, *input);
+            fprintf(stderr, "%d行目%d文字目：%cはトークナイズできません。", row, col, *sourceCode);
             exit(1);
         }
     }
     addToken(END_OF_FILE, "", 0, 0, row, col);
+    return;
+}
+
+void codeProceed(uint8_t count) {
+    sourceCode += count;
+    col += count;
+    return;
+}
+
+void codeNewLine(void) {
+    sourceCode++;
+    row++;
+    col = 1;
     return;
 }
 

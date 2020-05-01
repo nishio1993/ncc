@@ -90,10 +90,14 @@ main() {
 }"
 
 try 10 "
+/**
+ * 3を返却する。
+ */
 getNumber() {
 	return 3;
 }
 
+//メイン関数
 main() {
 	abc = 7;
 	abc = abc + getNumber();
