@@ -44,7 +44,7 @@ try 15 "return_a = 16 / 4; return return_a + 11;"
 try 47 "a = 23;if (11 == 11)a = 47; return a;"
 try 2 "a = 3;if (11 == 11)a = 2;b = 4;if (11 == 13)a = 4;return a;"
 try 45 "sum = 0; for (i = 0;i < 10;i = i + 1)sum = sum + i;return sum;"
-try 10 "sum = 0; while(sum < 10)sum = sum + 1;return sum;"
+try 10 "sum = 0; while (sum < 10)sum = sum + 1;return sum;"
 try 50 "
 ab = 10;
 if (ab == 10) {
@@ -64,7 +64,7 @@ return sum;
 try 45 "
 sum = 0;
 i = 0;
-while(i < 10) {
+while (i < 10) {
 	sum = sum + i;
 	i = i + 1;
 }
@@ -82,8 +82,11 @@ main() {
 		}
 	}
 
-	while (cd > 11) {
+	while (1) {
 		cd = cd - 4;
+		if (cd < 11) {
+			break;
+		}
 	}
 
 	return cd;
@@ -99,7 +102,7 @@ getNumber() {
 
 //メイン関数
 main() {
-	abc = 7;
+	abc = 1 + 2 + 4;
 	abc = abc + getNumber();
 	return abc;
 }

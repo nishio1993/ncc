@@ -12,28 +12,28 @@ Node *unary(void);
 Node *primary(void);
 
 bool isExpectedToken(char *ident);
+bool isExpectedTokenType(int8_t type);
 Node *newSymbolNode(int8_t type, Node *left, Node *right);
 Node *newNumberNode(Token *token);
 Node *newVariableNode(Token *token);
 Node *newFunctionNode(Token *token);
 Vector *newBlockVector(void);
+void outputError(int tokenIndex);
 
 uint16_t tokenIndex;
 
-void parse() {
+void parse(void) {
     program();
 }
 
 /**
  * program = statement*
  */
-void program() {
+void program(void) {
     codeVector = newVector();
-    Token *token = (Token*)tokenVector->data[0];
-    while(token->type != END_OF_FILE) {
+    while (isExpectedTokenType(END_OF_FILE) == false) {
         Node *node = statement();
         vectorPush(codeVector, node);
-        token = (Token *)tokenVector->data[tokenIndex];
     }
 }
 
@@ -45,14 +45,14 @@ void program() {
  *           | "while" "(" expression ")" statement
  *           | "return" expression ";"
  */
-Node *statement() {
+Node *statement(void) {
     Node *node = calloc(1, sizeof(Node));
-    if (isExpectedToken("{") == true){
+    if (isExpectedToken("{")){
         Vector *blockVector = newBlockVector();
         node->type = BLK;
         node->block = blockVector;
         return node;
-    } else if (isExpectedToken("if") == true) {
+    } else if (isExpectedToken("if")) {
         if (isExpectedToken("(") == false) {
             outputError(tokenIndex);
         }
@@ -65,7 +65,7 @@ Node *statement() {
         node->cond = cond;
         node->then = then;
         return node;
-    } else if (isExpectedToken("for") == true) {
+    } else if (isExpectedToken("for")) {
         if (isExpectedToken("(") == false) {
             outputError(tokenIndex);
         }
@@ -82,7 +82,7 @@ Node *statement() {
         node->after = after;
         node->then = then;
         return node;
-    } else if (isExpectedToken("while") == true) {
+    } else if (isExpectedToken("while")) {
         if (isExpectedToken("(") == false) {
             outputError(tokenIndex);
         }
@@ -95,16 +95,18 @@ Node *statement() {
         node->cond = cond;
         node->then = then;
         return node;
-    } else if (isExpectedToken("return") == true) {
+    } else if (isExpectedToken("return")) {
         node = newSymbolNode(RET, expression(), NULL);
+    } else if (isExpectedToken("break")) {
+        node->type = BRK;
     } else {
         node = expression();
     }
 
     Token *token = (Token*)tokenVector->data[tokenIndex];
-    if (isExpectedToken(";") == true) {
+    if (isExpectedToken(";")) {
         return node;
-    } else if (token->type == END_OF_FILE || node->type == FNK) {
+    } else if (isExpectedTokenType(END_OF_FILE) || node->type == FNK) {
         return node;
     } else {
         outputError(tokenIndex);
@@ -114,7 +116,7 @@ Node *statement() {
 /**
  * expression = assign
  */
-Node *expression() {
+Node *expression(void) {
     Node *node = assign();
     return node;
 }
@@ -122,9 +124,9 @@ Node *expression() {
 /**
  * assign = equality ("=" assign)?
  */
-Node *assign() {
+Node *assign(void) {
     Node *node = equality();
-    if (isExpectedToken("=") == true) {
+    if (isExpectedToken("=")) {
         return newSymbolNode(ASG, node, assign());
     } else {
         return node;
@@ -134,11 +136,11 @@ Node *assign() {
 /**
  * equality = relational ("==" relational | "!=" relational)*
  */
-Node *equality() {
+Node *equality(void) {
     Node *node = relational();
-    if (isExpectedToken("==") == true) {
+    if (isExpectedToken("==")) {
         return newSymbolNode(EQ, node, relational());
-    } else if (isExpectedToken("!=") == true) {
+    } else if (isExpectedToken("!=")) {
         return newSymbolNode(NEQ, node, relational());
     } else {
         return node;
@@ -148,15 +150,15 @@ Node *equality() {
 /**
  * relational = add ("<" add | "<=" add)*
  */
-Node *relational() {
+Node *relational(void) {
     Node *node = add();
-    if (isExpectedToken("<") == true) {
+    if (isExpectedToken("<")) {
         return newSymbolNode(LT, node, add());
-    } else if (isExpectedToken(">") == true) {
+    } else if (isExpectedToken(">")) {
         return newSymbolNode(LT, add(), node);
-    } else if (isExpectedToken("<=") == true) {
+    } else if (isExpectedToken("<=")) {
         return newSymbolNode(LTE, node, add());
-    } else if (isExpectedToken(">=") == true) {
+    } else if (isExpectedToken(">=")) {
         return newSymbolNode(LTE, add(), node);
     } else {
         return node;
@@ -166,11 +168,11 @@ Node *relational() {
 /**
  * add = mul ("+" add | "-" add)*
  */
-Node *add() {
+Node *add(void) {
     Node *node = mul();
-    if (isExpectedToken("+") == true) {
+    if (isExpectedToken("+")) {
         return newSymbolNode(ADD, node, add());
-    } else if (isExpectedToken("-") == true) {
+    } else if (isExpectedToken("-")) {
         return newSymbolNode(SUB, node, add());
     } else {
         return node;
@@ -180,11 +182,11 @@ Node *add() {
 /**
  * mul = unary ("*" mul | "/" mul)*
  */
-Node *mul() {
+Node *mul(void) {
     Node *node = unary();
-    if (isExpectedToken("*") == true) {
+    if (isExpectedToken("*")) {
         return newSymbolNode(MUL, node, mul());
-    } else if (isExpectedToken("/") == true) {
+    } else if (isExpectedToken("/")) {
         return newSymbolNode(DIV, node, mul());
     } else {
         return node;
@@ -194,13 +196,13 @@ Node *mul() {
 /**
  * unary = ("+" unary | "-" unary)? primary
  */
-Node *unary() {
-    if (isExpectedToken("-") == true) {
+Node *unary(void) {
+    if (isExpectedToken("-")) {
         Node *node = calloc(1, sizeof(Node));
         node->type = NUM;
         node->value = 0;
         return newSymbolNode(SUB, node, unary());
-    } else if (isExpectedToken("+") == true) {
+    } else if (isExpectedToken("+")) {
         return unary();
     } else {
         return primary();
@@ -212,15 +214,15 @@ Node *unary() {
  *         | ident ("(" ")")?
  *         | "(" expr ")"
  */
-Node *primary() {
+Node *primary(void) {
     Token *token = (Token*)tokenVector->data[tokenIndex];
-    if (token->type == NUMBER) {
+    if (isExpectedTokenType(NUMBER)) {
         return newNumberNode(token);
-    } else if (token->type == VARIABLE) {
+    } else if (isExpectedTokenType(VARIABLE)) {
         return newVariableNode(token);
-    } else if (token->type == FUNCTION) {
+    } else if (isExpectedTokenType(FUNCTION)) {
         return newFunctionNode(token);
-    } else if (isExpectedToken("(") == true) {
+    } else if (isExpectedToken("(")) {
         Node *node = expression();
         if (isExpectedToken(")") == false) {
             outputError(tokenIndex);
@@ -240,6 +242,14 @@ bool isExpectedToken(char *ident) {
     } else {
         return false;
     }
+}
+
+/**
+ * 次のトークンが予期したタイプか調べる
+ */
+bool isExpectedTokenType(int8_t type) {
+    Token *token = (Token*)tokenVector->data[tokenIndex];
+    return token->type == type;
 }
 
 /**
@@ -292,7 +302,7 @@ Node *newFunctionNode(Token *token) {
     Node *node = calloc(1, sizeof(Node));
     node->name = name;
     node->length = length;
-    if (isExpectedToken("{") == true) {
+    if (isExpectedToken("{")) {
         Vector *block = newBlockVector();
         node->type = FNK;
         node->block = block;
@@ -305,11 +315,20 @@ Node *newFunctionNode(Token *token) {
 /**
  * ブロック構文を返却する。
  */
-Vector *newBlockVector() {
+Vector *newBlockVector(void) {
     Vector *blockVector = newVector();
-    while(isExpectedToken("}") == false) {
+    while (isExpectedToken("}") == false) {
         Node *block = statement();
         vectorPush(blockVector, block);
     }
     return blockVector;
+}
+
+/**
+ * 予期せぬトークンがあることを表記して処理終了する。
+ */
+void outputError(int index) {
+    Token *token = (Token*)tokenVector->data[index];
+    fprintf(stderr, "%d行目%d文字目：予期せぬ「%s」トークンがありました。\n", token->row, token->col, token->ident);
+    exit(1);
 }

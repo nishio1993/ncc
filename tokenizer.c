@@ -12,6 +12,21 @@ uint8_t offset = 8;
 uint16_t row = 1;
 uint16_t col = 1;
 
+typedef struct Symbol {
+    char* ident;
+    uint8_t length;
+} Symbol;
+
+Symbol syntaxList[] = {
+    {"if", 2}, {"for", 3}, {"while", 5}, {"return", 6}, {"{", 1}, {"}", 1},
+    {"break", 5},
+    {NULL, 0}
+};
+Symbol multiWordOperatorList[] = {
+    {"==", 2}, {"!=", 2}, {"<=", 2}, {">=", 2},
+    {NULL, 0}
+};
+
 /**
  * 与えられた式をトークンに分解する
  */
@@ -19,14 +34,25 @@ void tokenize(char *input) {
     sourceCode = input;
     tokenVector = newVector();
     variableVector = newVector();
-
+loop:
     while (*sourceCode != '\0') {
+        //空白・改行
+        if (*sourceCode == ' ' ||*sourceCode == '\t') {
+            codeProceed(1);
+            continue;
+        } else if (*sourceCode == '\n') {
+            codeNewLine();
+            continue;
+        }
+
+        //コメント
         if (strncmp("//", sourceCode, 2) == 0) {
             codeProceed(2);
             while (*sourceCode != '\n') {
                 codeProceed(1);
             }
             codeNewLine();
+            continue;
         } else if (strncmp("/*", sourceCode, 2) == 0) {
             codeProceed(2);
             while (strncmp("*/", sourceCode, 2) != 0) {
@@ -37,44 +63,41 @@ void tokenize(char *input) {
                 }
             }
             codeProceed(2);
-        } else if (*sourceCode == ' ' ||*sourceCode == '\t') {
-            codeProceed(1);
-        } else if (*sourceCode == '\n') {
-            codeNewLine();
-        } else if (strchr("{}", *sourceCode) != NULL) {
-            char *ident = duplicateString(sourceCode, 1);
-            addToken(SYNTAX, ident, 1, 0, row, col);
-            codeProceed(1);
-        } else if (strncmp("if", sourceCode, 2) == 0
-                && isIdentifier(sourceCode[2]) == false) {
-            addToken(SYNTAX, "if", 2, 0, row, col);
-            codeProceed(2);
-        } else if (strncmp("for", sourceCode, 3) == 0
-                && isIdentifier(sourceCode[3]) == false) {
-            addToken(SYNTAX, "for", 3, 0, row, col);
-            codeProceed(3);
-        } else if (strncmp("while", sourceCode, 5) == 0
-                && isIdentifier(sourceCode[5]) == false) {
-            addToken(SYNTAX, "while", 5, 0, row, col);
-            codeProceed(5);
-        } else if (strncmp("return", sourceCode, 6) == 0
-                && isIdentifier(sourceCode[6]) == false) {
-            addToken(SYNTAX, "return", 6, 0, row, col);
-            codeProceed(6);
-        } else if (strncmp("==", sourceCode, 2) == 0
-                || strncmp("!=", sourceCode, 2) == 0
-                || strncmp("<=", sourceCode, 2) == 0
-                || strncmp(">=", sourceCode, 2) == 0) {
-            char *ident = duplicateString(sourceCode, 2);
-            addToken(OPERATOR, ident, 2, 0, row, col);
-            codeProceed(2);
-        } else if (strchr("+-*/()<>;=", *sourceCode) != NULL) {
+            continue;
+        }
+
+        //構文
+        for (int i = 0; multiWordOperatorList[i].ident; i++) {
+            if (strncmp(multiWordOperatorList[i].ident, sourceCode, multiWordOperatorList[i].length) == 0
+                && isIdentifier(sourceCode[multiWordOperatorList[i].length]) == false) {
+                addToken(SYNTAX, multiWordOperatorList[i].ident, multiWordOperatorList[i].length, 0, row, col);
+                codeProceed(multiWordOperatorList[i].length);
+                goto loop;
+            }
+        }
+
+        //複数文字演算子
+        for (int i = 0; syntaxList[i].ident; i++) {
+            if (strncmp(syntaxList[i].ident, sourceCode, syntaxList[i].length) == 0
+                && isIdentifier(sourceCode[syntaxList[i].length]) == false) {
+                addToken(SYNTAX, syntaxList[i].ident, syntaxList[i].length, 0, row, col);
+                codeProceed(syntaxList[i].length);
+                goto loop;
+            }
+        }
+        
+        //単一文字演算子
+        if (strchr("+-*/()<>;=", *sourceCode) != NULL) {
             char *ident = duplicateString(sourceCode, 1);
             addToken(OPERATOR, ident, 1, 0, row, col);
             codeProceed(1);
-        } else if (isalpha(*sourceCode) || *sourceCode == '_') {
+            continue;
+        }
+        
+        //変数・関数
+        if (isalpha(*sourceCode) || *sourceCode == '_') {
             int length = 0;
-            while(isIdentifier(sourceCode[length])) {
+            while (isIdentifier(sourceCode[length])) {
                 length++;
             }
             char *name = duplicateString(sourceCode, length);
@@ -88,15 +111,21 @@ void tokenize(char *input) {
                 }
             }
             codeProceed(length);
-        } else if (isdigit(*sourceCode)) {
+            continue;
+        }
+        
+        //数値
+        if (isdigit(*sourceCode)) {
             int value = strtol(sourceCode, &sourceCode, 10);
             int length = getDigits(value);
             addToken(NUMBER, "", 0, value, row, col);
             col += length;
-        } else {
-            fprintf(stderr, "%d行目%d文字目：%cはトークナイズできません。", row, col, *sourceCode);
-            exit(1);
+            continue;
         }
+
+        //上記のいずれでもない
+        fprintf(stderr, "%d行目%d文字目：%cはトークナイズできません。", row, col, *sourceCode);
+        exit(1);
     }
     addToken(END_OF_FILE, "", 0, 0, row, col);
     return;
@@ -147,7 +176,7 @@ uint8_t getDigits(uint8_t num) {
         return 1;
     }
 
-    while(num != 0) {
+    while (num != 0) {
         num /= 10;
         digits++;
     }

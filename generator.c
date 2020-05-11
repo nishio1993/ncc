@@ -1,10 +1,10 @@
 #include "ncc.h"
 
 void generateForVariable(Node *node);
-void labelIndexIncrement();
 
 uint16_t endLabelIndex;
 uint16_t beginLabelIndex;
+uint16_t breakLabelIndex;
 
 /**
  * アセンブリを標準出力する
@@ -61,9 +61,10 @@ void generate(Node *node) {
         printf("    je      .Lend%u\n", endLabelIndex);
         generate(node->then);
         printf(".Lend%u:\n", endLabelIndex);
-        labelIndexIncrement();
+        endLabelIndex++;
         return;
     } else if (node->type == FOR) {
+        breakLabelIndex = endLabelIndex + 1;
         generate(node->init);
         printf(".Lbegin%u:\n", beginLabelIndex);
         generate(node->cond);
@@ -74,9 +75,11 @@ void generate(Node *node) {
         generate(node->after);
         printf("    jmp     .Lbegin%u\n", beginLabelIndex);
         printf(".Lend%u:\n", endLabelIndex);
-        labelIndexIncrement();
+        beginLabelIndex++;
+        endLabelIndex++;
         return;
     } else if (node->type == WHL) {
+        breakLabelIndex = endLabelIndex + 1;
         printf(".Lbegin%u:\n", beginLabelIndex);
         generate(node->cond);
         printf("    pop     rax\n");
@@ -85,7 +88,8 @@ void generate(Node *node) {
         generate(node->then);
         printf("    jmp     .Lbegin%u\n", beginLabelIndex);
         printf(".Lend%u:\n", endLabelIndex);
-        labelIndexIncrement();
+        beginLabelIndex++;
+        endLabelIndex++;
         return;
     } else if (node->type == RET) {
         generate(node->left);
@@ -93,6 +97,9 @@ void generate(Node *node) {
         printf("    mov     rsp, rbp\n");
         printf("    pop     rbp\n");
         printf("    ret\n");
+        return;
+    } else if (node->type == BRK) {
+        printf("    jmp     .Lend%u\n", breakLabelIndex);
         return;
     }
 
@@ -151,9 +158,4 @@ void generateForVariable(Node *node) {
         fprintf(stderr, "=の左に来るノードではありません。\n");
         exit(1);
     }
-}
-
-void labelIndexIncrement() {
-    beginLabelIndex++;
-    endLabelIndex++;
 }

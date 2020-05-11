@@ -32,6 +32,7 @@ typedef enum NodeType{
     FOR,    //for
     WHL,    //while
     BLK,    //{}
+    BRK,    //break
     FNK,    //関数定義
     CAL,    //関数呼出
     RET     //return
