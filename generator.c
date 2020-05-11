@@ -101,6 +101,9 @@ void generate(Node *node) {
     } else if (node->type == BRK) {
         printf("    jmp     .Lend%u\n", breakLabelIndex);
         return;
+    } else if (node->type == CNT) {
+        printf("    jmp     .Lbegin%u\n", beginLabelIndex);
+        return;
     }
 
     generate(node->left);

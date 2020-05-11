@@ -19,7 +19,7 @@ typedef struct Symbol {
 
 Symbol syntaxList[] = {
     {"if", 2}, {"for", 3}, {"while", 5}, {"return", 6}, {"{", 1}, {"}", 1},
-    {"break", 5},
+    {"break", 5}, {"continue", 8},
     {NULL, 0}
 };
 Symbol multiWordOperatorList[] = {

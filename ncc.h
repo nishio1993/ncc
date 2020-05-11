@@ -33,6 +33,7 @@ typedef enum NodeType{
     WHL,    //while
     BLK,    //{}
     BRK,    //break
+    CNT,    //continue
     FNK,    //関数定義
     CAL,    //関数呼出
     RET     //return

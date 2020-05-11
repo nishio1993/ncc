@@ -89,6 +89,13 @@ main() {
 		}
 	}
 
+	while (ab > 10) {
+		ab = ab - 10;
+		continue;
+		//continueが機能していなければ無限ループになるはず
+		ab = ab + 10;
+	}
+
 	return cd;
 }"
 

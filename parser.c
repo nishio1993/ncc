@@ -99,6 +99,8 @@ Node *statement(void) {
         node = newSymbolNode(RET, expression(), NULL);
     } else if (isExpectedToken("break")) {
         node->type = BRK;
+    } else if (isExpectedToken("continue")) {
+        node->type = CNT;
     } else {
         node = expression();
     }
