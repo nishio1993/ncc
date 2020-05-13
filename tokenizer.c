@@ -87,7 +87,7 @@ loop:
         }
         
         //単一文字演算子
-        if (strchr("+-*/()<>;=", *sourceCode) != NULL) {
+        if (strchr("+-*/%()<>;=", *sourceCode) != NULL) {
             char *ident = duplicateString(sourceCode, 1);
             addToken(OPERATOR, ident, 1, 0, row, col);
             codeProceed(1);

@@ -21,6 +21,7 @@ typedef enum NodeType{
     SUB,    //-
     MUL,    //*
     DIV,    //÷
+    REM,    //%
     EQ,     //==
     NEQ,    //!=
     LT,     //<

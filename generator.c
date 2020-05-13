@@ -125,6 +125,11 @@ void generate(Node *node) {
             printf("    mov     rdx, 0\n");
             printf("    div     rdi\n");
             break;
+        case REM:
+            printf("    mov     rdx, 0\n");
+            printf("    div     rdi\n");
+            printf("    push    rdx\n");
+            return;
         case EQ:
             printf("    cmp     rax, rdi\n");
             printf("    sete    al\n");

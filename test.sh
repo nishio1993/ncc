@@ -109,7 +109,7 @@ getNumber() {
 
 //メイン関数
 main() {
-	abc = 1 + 2 + 4;
+	abc = 7 % 9;
 	abc = abc + getNumber();
 	return abc;
 }

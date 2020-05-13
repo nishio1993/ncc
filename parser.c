@@ -182,7 +182,7 @@ Node *add(void) {
 }
 
 /**
- * mul = unary ("*" mul | "/" mul)*
+ * mul = unary ("*" mul | "/" mul | "%" mul)*
  */
 Node *mul(void) {
     Node *node = unary();
@@ -190,6 +190,8 @@ Node *mul(void) {
         return newSymbolNode(MUL, node, mul());
     } else if (isExpectedToken("/")) {
         return newSymbolNode(DIV, node, mul());
+    } else if (isExpectedToken("%")) {
+        return newSymbolNode(REM, node, mul());
     } else {
         return node;
     }
