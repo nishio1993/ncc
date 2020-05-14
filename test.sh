@@ -110,6 +110,7 @@ getNumber() {
 //メイン関数
 main() {
 	abc = 7 % 9;
+	abc = 15 & 7;
 	abc = abc + getNumber();
 	return abc;
 }

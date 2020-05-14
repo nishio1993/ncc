@@ -130,6 +130,9 @@ void generate(Node *node) {
             printf("    div     rdi\n");
             printf("    push    rdx\n");
             return;
+        case AND:
+            printf("    and     rax, rdi\n");
+            break;
         case EQ:
             printf("    cmp     rax, rdi\n");
             printf("    sete    al\n");

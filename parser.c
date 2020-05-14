@@ -4,6 +4,7 @@ void program(void);
 Node *statement(void);
 Node *expression(void);
 Node *assign(void);
+Node *bit_and(void);
 Node *equality(void);
 Node *relational(void);
 Node *add(void);
@@ -110,9 +111,8 @@ Node *statement(void) {
         return node;
     } else if (isExpectedTokenType(END_OF_FILE) || node->type == FNK) {
         return node;
-    } else {
-        outputError(tokenIndex);
     }
+    outputError(tokenIndex);
 }
 
 /**
@@ -124,15 +124,26 @@ Node *expression(void) {
 }
 
 /**
- * assign = equality ("=" assign)?
+ * assign = bit_and ("=" assign)?
  */
 Node *assign(void) {
-    Node *node = equality();
+    Node *node = bit_and();
     if (isExpectedToken("=")) {
         return newSymbolNode(ASG, node, assign());
-    } else {
-        return node;
     }
+    return node;
+
+}
+
+/**
+ * bit_and = equality ("&" equality)?
+ */
+Node *bit_and(void) {
+    Node *node = equality();
+    if (isExpectedToken("&")) {
+        return newSymbolNode(AND, node, equality());
+    }
+    return node;
 }
 
 /**
@@ -144,9 +155,8 @@ Node *equality(void) {
         return newSymbolNode(EQ, node, relational());
     } else if (isExpectedToken("!=")) {
         return newSymbolNode(NEQ, node, relational());
-    } else {
-        return node;
     }
+    return node;
 }
 
 /**
@@ -162,9 +172,8 @@ Node *relational(void) {
         return newSymbolNode(LTE, node, add());
     } else if (isExpectedToken(">=")) {
         return newSymbolNode(LTE, add(), node);
-    } else {
-        return node;
     }
+    return node;
 }
 
 /**
@@ -176,9 +185,8 @@ Node *add(void) {
         return newSymbolNode(ADD, node, add());
     } else if (isExpectedToken("-")) {
         return newSymbolNode(SUB, node, add());
-    } else {
-        return node;
     }
+    return node;
 }
 
 /**
@@ -192,9 +200,8 @@ Node *mul(void) {
         return newSymbolNode(DIV, node, mul());
     } else if (isExpectedToken("%")) {
         return newSymbolNode(REM, node, mul());
-    } else {
-        return node;
     }
+    return node;
 }
 
 /**
@@ -208,9 +215,8 @@ Node *unary(void) {
         return newSymbolNode(SUB, node, unary());
     } else if (isExpectedToken("+")) {
         return unary();
-    } else {
-        return primary();
     }
+    return primary();
 }
 
 /**
@@ -233,6 +239,7 @@ Node *primary(void) {
         }
         return node;
     }
+    outputError(tokenIndex);
 }
 
 /**
@@ -243,9 +250,8 @@ bool isExpectedToken(char *ident) {
     if (strncmp(ident, token->ident, token->length) == 0 && ident[token->length] == '\0') {
         tokenIndex++;
         return true;
-    } else {
-        return false;
     }
+    return false;
 }
 
 /**
