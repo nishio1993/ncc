@@ -4,6 +4,7 @@ void program(void);
 Node *statement(void);
 Node *expression(void);
 Node *assign(void);
+Node *bit_or(void);
 Node *bit_and(void);
 Node *equality(void);
 Node *relational(void);
@@ -127,12 +128,23 @@ Node *expression(void) {
  * assign = bit_and ("=" assign)?
  */
 Node *assign(void) {
-    Node *node = bit_and();
+    Node *node = bit_or();
     if (isExpectedToken("=")) {
         return newSymbolNode(ASG, node, assign());
     }
     return node;
 
+}
+
+/**
+ * bit_or = bit_and ("|" bit_and)?
+ */
+Node *bit_or(void) {
+    Node *node = bit_and();
+    if (isExpectedToken("|")) {
+        return newSymbolNode(OR, node, bit_and());
+    }
+    return node;
 }
 
 /**

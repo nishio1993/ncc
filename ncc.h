@@ -23,6 +23,7 @@ typedef enum NodeType{
     DIV,    //÷
     REM,    //%
     AND,    //&
+    OR,     //|
     EQ,     //==
     NEQ,    //!=
     LT,     //<

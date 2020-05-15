@@ -133,6 +133,9 @@ void generate(Node *node) {
         case AND:
             printf("    and     rax, rdi\n");
             break;
+        case OR:
+            printf("    or      rax, rdi\n");
+            break;
         case EQ:
             printf("    cmp     rax, rdi\n");
             printf("    sete    al\n");

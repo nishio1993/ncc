@@ -104,7 +104,7 @@ try 10 "
  * 3を返却する。
  */
 getNumber() {
-	return 3;
+	return 1 | 2;
 }
 
 //メイン関数
