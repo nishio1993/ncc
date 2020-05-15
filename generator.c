@@ -54,6 +54,24 @@ void generate(Node *node) {
             blockIndex++;
         }
         return;
+    } else if (node->type == LOR) {
+        int trueLabelIndex = endLabelIndex++;
+        int exitLabelIndex = endLabelIndex++;
+        generate(node->left);
+        printf("    pop     rax\n");
+        printf("    cmp     rax, 0\n");
+        printf("    jne     .Ltrue%u\n", trueLabelIndex);
+        generate(node->right);
+        printf("    pop     rax\n");
+        printf("    cmp     rax, 0\n");
+        printf("    jne     .Ltrue%u\n", trueLabelIndex);
+        printf("    mov     rax, 0\n");
+        printf("    jmp     .Lexit%u\n", exitLabelIndex);
+        printf(".Ltrue%u:\n", trueLabelIndex);
+        printf("    mov     rax, 1\n");
+        printf(".Lexit%u:\n", exitLabelIndex);
+        printf("    push    rax\n");
+        return;
     } else if (node->type == LAND) {
         int falseLabelIndex = endLabelIndex++;
         int exitLabelIndex = endLabelIndex++;

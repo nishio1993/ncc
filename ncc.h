@@ -30,6 +30,7 @@ typedef enum NodeType{
     LT,     //<
     LTE,    //<=
     LAND,   //&&
+    LOR,    //||
     VAR,    //変数
     ASG,    //=
     NUM,    //整数
