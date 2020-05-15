@@ -4,6 +4,7 @@ void program(void);
 Node *statement(void);
 Node *expression(void);
 Node *assign(void);
+Node *logical_and(void);
 Node *bit_or(void);
 Node *bit_xor(void);
 Node *bit_and(void);
@@ -126,10 +127,10 @@ Node *expression(void) {
 }
 
 /**
- * assign = bit_and ("=" assign)?
+ * assign = logical_and ("=" assign)?
  */
 Node *assign(void) {
-    Node *node = bit_or();
+    Node *node = logical_and();
     if (isExpectedToken("=")) {
         return newSymbolNode(ASG, node, assign());
     }
@@ -138,12 +139,23 @@ Node *assign(void) {
 }
 
 /**
+ * logical_and = bit_or ("&" bit_or)*
+ */
+Node *logical_and(void) {
+    Node *node = bit_or();
+    while (isExpectedToken("&&")) {
+        node = newSymbolNode(LAND, node, bit_or());
+    }
+    return node;
+}
+
+/**
  * bit_or = bit_xor ("|" bit_xor)?
  */
 Node *bit_or(void) {
     Node *node = bit_xor();
     if (isExpectedToken("|")) {
-        return newSymbolNode(OR, node, bit_xor());
+        return newSymbolNode(BOR, node, bit_xor());
     }
     return node;
 }
@@ -165,7 +177,7 @@ Node *bit_xor(void) {
 Node *bit_and(void) {
     Node *node = equality();
     if (isExpectedToken("&")) {
-        return newSymbolNode(AND, node, equality());
+        return newSymbolNode(BAND, node, equality());
     }
     return node;
 }

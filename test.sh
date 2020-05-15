@@ -117,4 +117,17 @@ main() {
 }
 "
 
+try 2 "
+main() {
+	ab = 1 && 1;
+	cd = 2 && 0;
+	ef = 0 && 3;
+	gh = 0 && 0;
+	ij = 4 && 5 && 6;
+	kl = 7 && 8 && 0 && 9;
+
+	return ab + cd + ef + gh + ij + kl;
+}
+"
+
 echo OK

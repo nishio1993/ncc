@@ -54,6 +54,24 @@ void generate(Node *node) {
             blockIndex++;
         }
         return;
+    } else if (node->type == LAND) {
+        int falseLabelIndex = endLabelIndex++;
+        int exitLabelIndex = endLabelIndex++;
+        generate(node->left);
+        printf("    pop     rax\n");
+        printf("    cmp     rax, 0\n");
+        printf("    je      .Lfalse%u\n", falseLabelIndex);
+        generate(node->right);
+        printf("    pop     rax\n");
+        printf("    cmp     rax, 0\n");
+        printf("    je      .Lfalse%u\n", falseLabelIndex);
+        printf("    mov     rax, 1\n");
+        printf("    jmp     .Lexit%u\n", exitLabelIndex);
+        printf(".Lfalse%u:\n", falseLabelIndex);
+        printf("    mov     rax, 0\n");
+        printf(".Lexit%u:\n", exitLabelIndex);
+        printf("    push    rax\n");
+        return;
     } else if (node->type == IF) {
         generate(node->cond);
         printf("    pop     rax\n");
@@ -130,10 +148,10 @@ void generate(Node *node) {
             printf("    div     rdi\n");
             printf("    push    rdx\n");
             return;
-        case AND:
+        case BAND:
             printf("    and     rax, rdi\n");
             break;
-        case OR:
+        case BOR:
             printf("    or      rax, rdi\n");
             break;
         case XOR:

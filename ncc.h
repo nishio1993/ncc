@@ -22,13 +22,14 @@ typedef enum NodeType{
     MUL,    //*
     DIV,    //÷
     REM,    //%
-    AND,    //&
-    OR,     //|
+    BAND,   //&
+    BOR,    //|
     XOR,    //^
     EQ,     //==
     NEQ,    //!=
     LT,     //<
     LTE,    //<=
+    LAND,   //&&
     VAR,    //変数
     ASG,    //=
     NUM,    //整数

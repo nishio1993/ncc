@@ -23,7 +23,7 @@ Symbol syntaxList[] = {
     {NULL, 0}
 };
 Symbol multiWordOperatorList[] = {
-    {"==", 2}, {"!=", 2}, {"<=", 2}, {">=", 2},
+    {"==", 2}, {"!=", 2}, {"<=", 2}, {">=", 2}, {"&&", 2},
     {NULL, 0}
 };
 

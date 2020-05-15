@@ -16,8 +16,5 @@ int main(int argc, char **argv) {
         generate(node);
         printf("    pop     rax\n");
     }
-    printf("    mov     rsp, rbp\n");
-    printf("    pop     rbp\n");
-    printf("    ret\n");
     return 0;
 }
