@@ -5,6 +5,7 @@ Node *statement(void);
 Node *expression(void);
 Node *assign(void);
 Node *bit_or(void);
+Node *bit_xor(void);
 Node *bit_and(void);
 Node *equality(void);
 Node *relational(void);
@@ -137,12 +138,23 @@ Node *assign(void) {
 }
 
 /**
- * bit_or = bit_and ("|" bit_and)?
+ * bit_or = bit_xor ("|" bit_xor)?
  */
 Node *bit_or(void) {
-    Node *node = bit_and();
+    Node *node = bit_xor();
     if (isExpectedToken("|")) {
-        return newSymbolNode(OR, node, bit_and());
+        return newSymbolNode(OR, node, bit_xor());
+    }
+    return node;
+}
+
+/**
+ * bit_xor = bit_and ("|" bit_and)?
+ */
+Node *bit_xor(void) {
+    Node *node = bit_and();
+    if (isExpectedToken("^")) {
+        return newSymbolNode(XOR, node, bit_and());
     }
     return node;
 }

@@ -111,6 +111,7 @@ getNumber() {
 main() {
 	abc = 7 % 9;
 	abc = 15 & 7;
+	abc = abc ^ 0;
 	abc = abc + getNumber();
 	return abc;
 }

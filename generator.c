@@ -136,6 +136,9 @@ void generate(Node *node) {
         case OR:
             printf("    or      rax, rdi\n");
             break;
+        case XOR:
+            printf("    xor     rax, rdi\n");
+            break;
         case EQ:
             printf("    cmp     rax, rdi\n");
             printf("    sete    al\n");

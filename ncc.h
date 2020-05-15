@@ -24,6 +24,7 @@ typedef enum NodeType{
     REM,    //%
     AND,    //&
     OR,     //|
+    XOR,    //^
     EQ,     //==
     NEQ,    //!=
     LT,     //<
