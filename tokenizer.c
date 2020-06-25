@@ -18,12 +18,12 @@ typedef struct Symbol {
 } Symbol;
 
 Symbol syntaxList[] = {
-    {"if", 2}, {"for", 3}, {"while", 5}, {"return", 6}, {"{", 1}, {"}", 1},
-    {"break", 5}, {"continue", 8},
+    {"if", 2}, {"for", 3}, {"while", 5}, {"return", 6}, {"break", 5}, {"continue", 8},
     {NULL, 0}
 };
 Symbol multiWordOperatorList[] = {
     {"==", 2}, {"!=", 2}, {"<=", 2}, {">=", 2}, {"&&", 2}, {"||", 2},
+    {"++", 2}, {"--", 2},
     {NULL, 0}
 };
 
@@ -66,34 +66,41 @@ loop:
             continue;
         }
 
-        //構文
-        for (int i = 0; multiWordOperatorList[i].ident; i++) {
-            if (strncmp(multiWordOperatorList[i].ident, sourceCode, multiWordOperatorList[i].length) == 0
-                && isIdentifier(sourceCode[multiWordOperatorList[i].length]) == false) {
-                addToken(SYNTAX, multiWordOperatorList[i].ident, multiWordOperatorList[i].length, 0, row, col);
-                codeProceed(multiWordOperatorList[i].length);
-                goto loop;
-            }
-        }
-
-        //複数文字演算子
+        //複数文字構文
         for (int i = 0; syntaxList[i].ident; i++) {
             if (strncmp(syntaxList[i].ident, sourceCode, syntaxList[i].length) == 0
-                && isIdentifier(sourceCode[syntaxList[i].length]) == false) {
+                && !isIdentifier(sourceCode[syntaxList[i].length])) {
                 addToken(SYNTAX, syntaxList[i].ident, syntaxList[i].length, 0, row, col);
                 codeProceed(syntaxList[i].length);
                 goto loop;
             }
         }
-        
+
+        //複数文字演算子
+        for (int i = 0; multiWordOperatorList[i].ident; i++) {
+            if (strncmp(multiWordOperatorList[i].ident, sourceCode, multiWordOperatorList[i].length) == 0) {
+                addToken(OPERATOR, multiWordOperatorList[i].ident, multiWordOperatorList[i].length, 0, row, col);
+                codeProceed(multiWordOperatorList[i].length);
+                goto loop;
+            }
+        }
+
+        //単一文字構文
+        if (strchr("{};", *sourceCode) != NULL) {
+            char *ident = duplicateString(sourceCode, 1);
+            addToken(SYNTAX, ident, 1, 0, row, col);
+            codeProceed(1);
+            continue;
+        }
+
         //単一文字演算子
-        if (strchr("+-*/%&|^()<>;=", *sourceCode) != NULL) {
+        if (strchr("+-*/%&|^()<>=", *sourceCode) != NULL) {
             char *ident = duplicateString(sourceCode, 1);
             addToken(OPERATOR, ident, 1, 0, row, col);
             codeProceed(1);
             continue;
         }
-        
+
         //変数・関数
         if (isalpha(*sourceCode) || *sourceCode == '_') {
             int length = 0;
@@ -113,7 +120,7 @@ loop:
             codeProceed(length);
             continue;
         }
-        
+
         //数値
         if (isdigit(*sourceCode)) {
             int value = strtol(sourceCode, &sourceCode, 10);

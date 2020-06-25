@@ -14,6 +14,7 @@ Node *relational(void);
 Node *add(void);
 Node *mul(void);
 Node *unary(void);
+Node *postfix(void);
 Node *primary(void);
 
 bool isExpectedToken(char *ident);
@@ -36,7 +37,7 @@ void parse(void) {
  */
 void program(void) {
     codeVector = newVector();
-    while (isExpectedTokenType(END_OF_FILE) == false) {
+    while (!isExpectedTokenType(END_OF_FILE)) {
         Node *node = statement();
         vectorPush(codeVector, node);
     }
@@ -58,11 +59,11 @@ Node *statement(void) {
         node->block = blockVector;
         return node;
     } else if (isExpectedToken("if")) {
-        if (isExpectedToken("(") == false) {
+        if (!isExpectedToken("(")) {
             outputError(tokenIndex);
         }
         Node *cond = expression();
-        if (isExpectedToken(")") == false) {
+        if (!isExpectedToken(")")) {
             outputError(tokenIndex);
         }
         Node *then = statement();
@@ -71,13 +72,13 @@ Node *statement(void) {
         node->then = then;
         return node;
     } else if (isExpectedToken("for")) {
-        if (isExpectedToken("(") == false) {
+        if (!isExpectedToken("(")) {
             outputError(tokenIndex);
         }
         Node *init = statement();
         Node *cond = statement();
         Node *after = expression();
-        if (isExpectedToken(")") == false) {
+        if (!isExpectedToken(")")) {
             outputError(tokenIndex);
         }
         Node *then = statement();
@@ -88,11 +89,11 @@ Node *statement(void) {
         node->then = then;
         return node;
     } else if (isExpectedToken("while")) {
-        if (isExpectedToken("(") == false) {
+        if (!isExpectedToken("(")) {
             outputError(tokenIndex);
         }
         Node *cond = expression();
-        if (isExpectedToken(")") == false) {
+        if (!isExpectedToken(")")) {
             outputError(tokenIndex);
         }
         Node *then = statement();
@@ -253,18 +254,51 @@ Node *mul(void) {
 }
 
 /**
- * unary = ("+" unary | "-" unary)? primary
+ * unary = ("+" postfix | "-" postfix | "++" unary | "--" unary)? postfix
  */
 Node *unary(void) {
     if (isExpectedToken("-")) {
         Node *node = calloc(1, sizeof(Node));
         node->type = NUM;
         node->value = 0;
-        return newSymbolNode(SUB, node, unary());
+        return newSymbolNode(SUB, node, postfix());
     } else if (isExpectedToken("+")) {
-        return unary();
+        return postfix();
+    } else if (isExpectedToken("++")) {
+        if (!isExpectedTokenType(VARIABLE)) {
+            outputError(tokenIndex);
+        }
+        Node *node = unary();
+        node->type = PREINC;
+        return node;
+    } else if (isExpectedToken("--")) {
+        if (!isExpectedTokenType(VARIABLE)) {
+            outputError(tokenIndex);
+        }
+        Node *node = unary();
+        node->type = PREDEC;
+        return node;
     }
-    return primary();
+    return postfix();
+}
+
+/**
+ * postfix = primary ("++" | "--" )?
+ */
+Node *postfix(void) {
+    Node *node = primary();
+    if (isExpectedToken("++")) {
+        if (node->type != VAR) {
+            outputError(tokenIndex);
+        }
+        node->type = POSINC;
+    } else if (isExpectedToken("--")) {
+        if (node->type != VAR) {
+            outputError(tokenIndex);
+        }
+        node->type = POSDEC;
+    }
+    return node;
 }
 
 /**
@@ -282,7 +316,7 @@ Node *primary(void) {
         return newFunctionNode(token);
     } else if (isExpectedToken("(")) {
         Node *node = expression();
-        if (isExpectedToken(")") == false) {
+        if (!isExpectedToken(")")) {
             outputError(tokenIndex);
         }
         return node;
@@ -351,10 +385,10 @@ Node *newFunctionNode(Token *token) {
     char *name = duplicateString(token->ident, token->length);
     int length = token->length;
     tokenIndex++;
-    if (isExpectedToken("(") == false) {
+    if (!isExpectedToken("(")) {
         outputError(tokenIndex);
     }
-    if (isExpectedToken(")") == false) {
+    if (!isExpectedToken(")")) {
         outputError(tokenIndex);
     }
     Node *node = calloc(1, sizeof(Node));
@@ -375,7 +409,7 @@ Node *newFunctionNode(Token *token) {
  */
 Vector *newBlockVector(void) {
     Vector *blockVector = newVector();
-    while (isExpectedToken("}") == false) {
+    while (!isExpectedToken("}")) {
         Node *block = statement();
         vectorPush(blockVector, block);
     }

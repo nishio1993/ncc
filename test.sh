@@ -130,4 +130,15 @@ main() {
 }
 "
 
+try 7 "
+main() {
+	a = 1;
+	b = ++a;	//b = 2, a = 2
+	c = b++;	//c = 2, b = 3
+	d = --c;	//d = 1, c = 1
+	e = d--;	//e = 1, d = 0
+	return a + b + c + d + e;
+}
+"
+
 echo OK

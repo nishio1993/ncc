@@ -34,6 +34,10 @@ typedef enum NodeType{
     VAR,    //変数
     ASG,    //=
     NUM,    //整数
+    PREINC, //前置インクリメント
+    PREDEC, //前置デクリメント
+    POSINC, //後置インクリメント
+    POSDEC, //後置デクリメント
     IF,     //if
     FOR,    //for
     WHL,    //while
@@ -68,19 +72,27 @@ typedef struct Vector {
 } Vector;
 
 typedef struct Node {
-    int8_t type;            //NodeType
-    struct Node *left;      //左辺
-    struct Node *right;     //右辺
-    int32_t value;          //NodeType=NUMの時の値
-    char *name;             //NodeType=VARの時の値
-    uint8_t length;         //変数名の長さ
-    struct Node *init;      //初期化式
-    struct Node *cond;      //条件式
-    struct Node *after;     //変化式
-    struct Node *then;      //実行処理
-    Vector *block;   //ブロック
-    Vector *arg;     //引数
+    int8_t type;        //NodeType
+    struct Node *left;  //左辺
+    struct Node *right; //右辺
+    int32_t value;      //NodeType=NUMの時の値
+    char *name;         //NodeType=VARの時の値
+    uint8_t length;     //変数名の長さ
+    struct Node *init;  //初期化式
+    struct Node *cond;  //条件式
+    struct Node *after; //変化式
+    struct Node *then;  //実行処理
+    Vector *block;      //ブロック
+    Vector *arg;        //引数
 } Node;
+
+typedef struct Function {
+    char *name;     //関数名
+    uint8_t length; //関数名の長さ
+    Vector *block;  //ブロック
+    Vector *arg;    //引数
+    Vector *local;  //ローカル変数
+} Function;
 
 typedef struct Map {
     Vector *key;    //キー

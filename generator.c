@@ -2,9 +2,9 @@
 
 void generateForVariable(Node *node);
 
-uint16_t endLabelIndex;
-uint16_t beginLabelIndex;
+uint16_t labelIndex;
 uint16_t breakLabelIndex;
+uint16_t continueLabelIndex;
 
 /**
  * アセンブリを標準出力する
@@ -46,6 +46,42 @@ void generate(Node *node) {
         printf("    call    %s\n", node->name);
         printf("    push    rax\n");
         return;
+    } else if (node->type == PREINC) {
+        Variable *variable = getVariable(node->name, node->length);
+        printf("    mov     rax, rbp\n");
+        printf("    sub     rax, %d\n", variable->offset * variable->byte);
+        printf("    mov     rdi, [rax]\n");
+        printf("    add     rdi, 1\n");
+        printf("    mov     [rax], rdi\n");
+        printf("    push    rdi\n");
+        return;
+    } else if (node->type == PREDEC) {
+        Variable *variable = getVariable(node->name, node->length);
+        printf("    mov     rax, rbp\n");
+        printf("    sub     rax, %d\n", variable->offset * variable->byte);
+        printf("    mov     rdi, [rax]\n");
+        printf("    sub     rdi, 1\n");
+        printf("    mov     [rax], rdi\n");
+        printf("    push    rdi\n");
+        return;
+    } else if (node->type == POSINC) {
+        Variable *variable = getVariable(node->name, node->length);
+        printf("    mov     rax, rbp\n");
+        printf("    sub     rax, %d\n", variable->offset * variable->byte);
+        printf("    mov     rdi, [rax]\n");
+        printf("    push    rdi\n");
+        printf("    add     rdi, 1\n");
+        printf("    mov     [rax], rdi\n");
+        return;
+    } else if (node->type == POSDEC) {
+        Variable *variable = getVariable(node->name, node->length);
+        printf("    mov     rax, rbp\n");
+        printf("    sub     rax, %d\n", variable->offset * variable->byte);
+        printf("    mov     rdi, [rax]\n");
+        printf("    push    rdi\n");
+        printf("    sub     rdi, 1\n");
+        printf("    mov     [rax], rdi\n");
+        return;
     } else if (node->type == BLK) {
         int blockIndex = 0;
         while(blockIndex < node->block->length) {
@@ -55,8 +91,8 @@ void generate(Node *node) {
         }
         return;
     } else if (node->type == LOR) {
-        int trueLabelIndex = endLabelIndex++;
-        int exitLabelIndex = endLabelIndex++;
+        uint16_t trueLabelIndex = labelIndex++;
+        uint16_t exitLabelIndex = labelIndex++;
         generate(node->left);
         printf("    pop     rax\n");
         printf("    cmp     rax, 0\n");
@@ -73,8 +109,8 @@ void generate(Node *node) {
         printf("    push    rax\n");
         return;
     } else if (node->type == LAND) {
-        int falseLabelIndex = endLabelIndex++;
-        int exitLabelIndex = endLabelIndex++;
+        uint16_t falseLabelIndex = labelIndex;
+        uint16_t exitLabelIndex = labelIndex++;
         generate(node->left);
         printf("    pop     rax\n");
         printf("    cmp     rax, 0\n");
@@ -91,16 +127,19 @@ void generate(Node *node) {
         printf("    push    rax\n");
         return;
     } else if (node->type == IF) {
+        uint16_t ifLabelIndex = labelIndex++;
         generate(node->cond);
         printf("    pop     rax\n");
         printf("    cmp     rax, 0\n");
-        printf("    je      .Lend%u\n", endLabelIndex);
+        printf("    je      .Lend%u\n", ifLabelIndex);
         generate(node->then);
-        printf(".Lend%u:\n", endLabelIndex);
-        endLabelIndex++;
+        printf(".Lend%u:\n", ifLabelIndex);
         return;
     } else if (node->type == FOR) {
-        breakLabelIndex = endLabelIndex + 1;
+        uint16_t beginLabelIndex = labelIndex;
+        uint16_t endLabelIndex = labelIndex;
+        breakLabelIndex = labelIndex;
+        continueLabelIndex = labelIndex++;
         generate(node->init);
         printf(".Lbegin%u:\n", beginLabelIndex);
         generate(node->cond);
@@ -111,11 +150,12 @@ void generate(Node *node) {
         generate(node->after);
         printf("    jmp     .Lbegin%u\n", beginLabelIndex);
         printf(".Lend%u:\n", endLabelIndex);
-        beginLabelIndex++;
-        endLabelIndex++;
         return;
     } else if (node->type == WHL) {
-        breakLabelIndex = endLabelIndex + 1;
+        uint16_t beginLabelIndex = labelIndex;
+        uint16_t endLabelIndex = labelIndex;
+        breakLabelIndex = labelIndex;
+        continueLabelIndex = labelIndex++;
         printf(".Lbegin%u:\n", beginLabelIndex);
         generate(node->cond);
         printf("    pop     rax\n");
@@ -124,8 +164,6 @@ void generate(Node *node) {
         generate(node->then);
         printf("    jmp     .Lbegin%u\n", beginLabelIndex);
         printf(".Lend%u:\n", endLabelIndex);
-        beginLabelIndex++;
-        endLabelIndex++;
         return;
     } else if (node->type == RET) {
         generate(node->left);
@@ -138,7 +176,7 @@ void generate(Node *node) {
         printf("    jmp     .Lend%u\n", breakLabelIndex);
         return;
     } else if (node->type == CNT) {
-        printf("    jmp     .Lbegin%u\n", beginLabelIndex);
+        printf("    jmp     .Lbegin%u\n", continueLabelIndex);
         return;
     }
 
